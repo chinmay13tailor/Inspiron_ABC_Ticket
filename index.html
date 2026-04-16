@@ -2,58 +2,78 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ticket Dashboard</title>
+<title>Customer Ticket Dashboard</title>
 
 <style>
 body{
 font-family:Segoe UI;
-background:#eef2f7;
+background:#f1f5f9;
 margin:0;
 padding:10px;
 }
 
+/* KPI */
+.kpi{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:10px;
+margin-bottom:10px;
+}
+.kpi div{
+background:white;
+padding:10px;
+border-radius:10px;
+text-align:center;
+font-weight:600;
+}
+
+/* LAYOUT */
 .container{
 display:grid;
-grid-template-columns:30% 70%;
-gap:12px;
-height:95vh;
+grid-template-columns:35% 65%;
+gap:10px;
+height:85vh;
 }
 
 /* LEFT PANEL */
-
 .left{
 background:white;
 border-radius:12px;
-padding:15px;
+padding:10px;
+display:flex;
+flex-direction:column;
+}
+
+.ticketHeader{
+display:flex;
+justify-content:space-between;
+margin-bottom:10px;
+}
+
+.ticketList{
+flex:1;
 overflow-y:auto;
+}
+
+.empty{
+text-align:center;
+color:#888;
+margin-top:50px;
 }
 
 .ticket{
 padding:10px;
-border:1px solid #ddd;
 border-radius:8px;
 margin-bottom:8px;
 cursor:pointer;
+border:1px solid #eee;
 }
 
 .ticket:hover{
 background:#f1f5f9;
 }
 
-.status{
-font-size:11px;
-padding:2px 6px;
-border-radius:6px;
-color:white;
-}
-
-.OPEN{background:#3b82f6;}
-.IN_PROGRESS{background:#f59e0b;}
-.RESOLVED{background:#22c55e;}
-.CLOSED{background:#64748b;}
-
 /* RIGHT PANEL */
-
 .right{
 background:white;
 border-radius:12px;
@@ -61,44 +81,28 @@ display:flex;
 flex-direction:column;
 }
 
-.header{
-padding:12px;
-border-bottom:1px solid #eee;
-font-weight:600;
-}
-
 .details{
 padding:10px;
-font-size:14px;
 border-bottom:1px solid #eee;
 }
-
-/* CHAT */
 
 .chat{
 flex:1;
 overflow-y:auto;
 padding:10px;
+display:flex;
+flex-direction:column;
 }
 
 .msg{
-margin:6px 0;
 padding:8px;
+margin:5px;
 border-radius:8px;
 max-width:70%;
 }
 
-.customer{
-background:#dbeafe;
-align-self:flex-start;
-}
-
-.oem{
-background:#dcfce7;
-align-self:flex-end;
-}
-
-/* INPUT */
+.customer{background:#dbeafe;}
+.oem{background:#dcfce7;align-self:flex-end;}
 
 .inputBox{
 display:flex;
@@ -106,16 +110,16 @@ padding:10px;
 border-top:1px solid #eee;
 }
 
-input, textarea, select{
+input,select,textarea{
 width:100%;
-margin-bottom:6px;
 padding:8px;
+margin-bottom:8px;
 border-radius:6px;
 border:1px solid #ccc;
 }
 
 button{
-padding:10px;
+padding:8px 12px;
 background:#2563eb;
 color:white;
 border:none;
@@ -123,57 +127,62 @@ border-radius:6px;
 cursor:pointer;
 }
 
-.createForm{
-margin-bottom:15px;
-border-bottom:1px solid #ddd;
-padding-bottom:10px;
+/* POPUP */
+.popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.4);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.popupContent{
+background:white;
+padding:20px;
+border-radius:12px;
+width:300px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- KPI -->
+<div class="kpi">
+<div id="all">0<br>All</div>
+<div id="open">0<br>Open</div>
+<div id="progress">0<br>In Progress</div>
+<div id="resolved">0<br>Resolved</div>
+<div id="closed">0<br>Closed</div>
+</div>
+
 <div class="container">
 
-<!-- LEFT PANEL -->
+<!-- LEFT -->
 <div class="left">
 
-<div class="createForm">
+<div class="ticketHeader">
+<h3>Tickets</h3>
+<button onclick="openPopup()">+ Create</button>
+</div>
 
-<h3>Create Ticket</h3>
-
-<input id="machine" placeholder="Machine">
-<input id="subject" placeholder="Subject">
-<textarea id="description" placeholder="Description"></textarea>
-
-<select id="priority">
-<option>LOW</option>
-<option>MEDIUM</option>
-<option>HIGH</option>
-</select>
-
-<input id="customer" placeholder="Customer Name">
-<input id="username" placeholder="Your Name">
-
-<button onclick="createTicketUI()">Create Ticket</button>
+<div id="ticketList" class="ticketList"></div>
 
 </div>
 
-<div id="ticketList"></div>
-
-</div>
-
-<!-- RIGHT PANEL -->
+<!-- RIGHT -->
 <div class="right">
 
-<div class="header" id="ticketHeader">Select Ticket</div>
+<div class="details" id="details">Select Ticket</div>
 
-<div class="details" id="ticketDetails"></div>
-
-<div class="chat" id="chatBox"></div>
+<div class="chat" id="chat"></div>
 
 <div class="inputBox">
-<input id="chatInput" placeholder="Type message">
+<input id="chatInput">
 <button onclick="sendChatUI()">Send</button>
 </div>
 
@@ -181,72 +190,49 @@ padding-bottom:10px;
 
 </div>
 
+<!-- POPUP -->
+<div class="popup" id="popup">
+<div class="popupContent">
+
+<h3>Create Ticket</h3>
+
+<select id="machine">
+<option>MC_01</option>
+<option>MC_02</option>
+<option>MC_03</option>
+</select>
+
+<input id="subject" placeholder="Subject">
+<textarea id="desc"></textarea>
+
+<select id="priority">
+<option>LOW</option>
+<option>MEDIUM</option>
+<option>HIGH</option>
+</select>
+
+<button onclick="createTicket()">Create</button>
+<button onclick="closePopup()">Cancel</button>
+
+</div>
+</div>
+
 <script>
 
-// CONFIG
 const API="https://plantwiz.pimateck.in/api";
 const DEVICE_ID="2b113dd0-2ce1-11f1-91db-cbfa9ac9843b";
 const JWT=new URLSearchParams(location.search).get("token")||"";
 
 let selectedTicket=null;
-let selectedTs=null;
 
-// CREATE TICKET
-async function createTicketUI(){
+// POPUP
+function openPopup(){popup.style.display="flex";}
+function closePopup(){popup.style.display="none";}
 
-const data={
-ticket_number:"TKT-"+Date.now(),
-ticket_subject:subject.value,
-ticket_description:description.value,
-ticket_machine:machine.value,
-ticket_customer:customer.value,
-ticket_criticality:priority.value,
-sender_name:username.value
-};
+// CREATE
+async function createTicket(){
 
-await createTicket(data);
-loadTickets();
-
-}
-
-// API CREATE
-async function createTicket(data){
-
-const ts=Date.now();
-
-await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
-method:"POST",
-headers:{
-"X-Authorization":"Bearer "+JWT,
-"Content-Type":"application/json"
-},
-body:JSON.stringify([{
-ts:ts,
-values:{
-ticket_number:data.ticket_number,
-ticket_subject:data.ticket_subject,
-ticket_description:data.ticket_description,
-ticket_machine:data.ticket_machine,
-ticket_customer:data.ticket_customer,
-ticket_assign_to:"",
-ticket_criticality:data.ticket_criticality,
-ticket_status:"OPEN",
-ticket_created_time:ts
-}
-}])
-});
-
-await sendChat({
-ticket_number:data.ticket_number,
-sender_type:"CUSTOMER",
-sender_name:data.sender_name,
-message:"Ticket Created"
-});
-
-}
-
-// SEND CHAT
-async function sendChat(data){
+const num="ABC-"+Date.now();
 
 await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
 method:"POST",
@@ -257,81 +243,26 @@ headers:{
 body:JSON.stringify([{
 ts:Date.now(),
 values:{
-ticket_number:data.ticket_number,
-chat_sender_type:data.sender_type,
-chat_sender_name:data.sender_name,
-chat_message:data.message,
-chat_time:Date.now()
+ticket_number:num,
+ticket_subject:subject.value,
+ticket_description:desc.value,
+ticket_machine:machine.value,
+ticket_customer:"ABC",
+ticket_status:"OPEN",
+ticket_criticality:priority.value
 }
 }])
 });
 
-loadChat(selectedTicket);
+closePopup();
+loadTickets();
 
 }
 
-// FETCH TICKETS
+// LOAD TICKETS
 async function loadTickets(){
 
-const keys=[
-"ticket_number",
-"ticket_subject",
-"ticket_status",
-"ticket_machine"
-];
-
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=${keys.join(",")}&limit=5000`,{
-headers:{"X-Authorization":"Bearer "+JWT}
-});
-
-const data=await res.json();
-
-const rows={};
-
-Object.entries(data).forEach(([k,arr])=>{
-(arr||[]).forEach(p=>{
-rows[p.ts]=rows[p.ts]||{ts:p.ts};
-rows[p.ts][k]=p.value;
-});
-});
-
-const list=Object.values(rows);
-
-ticketList.innerHTML="";
-
-list.forEach(t=>{
-ticketList.innerHTML+=`
-<div class="ticket" onclick="selectTicket('${t.ticket_number}','${t.ts}')">
-<b>${t.ticket_number}</b><br>
-${t.ticket_subject}<br>
-<span class="status ${t.ticket_status}">${t.ticket_status}</span>
-</div>
-`;
-});
-
-}
-
-// SELECT TICKET
-function selectTicket(num,ts){
-selectedTicket=num;
-selectedTs=ts;
-
-ticketHeader.innerText=num;
-
-loadChat(num);
-}
-
-// LOAD CHAT
-async function loadChat(ticket_number){
-
-const keys=[
-"ticket_number",
-"chat_sender_type",
-"chat_sender_name",
-"chat_message"
-];
-
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=${keys.join(",")}&limit=5000`,{
+const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status&limit=5000`,{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
@@ -346,12 +277,72 @@ rows[p.ts][k]=p.value;
 });
 });
 
-const chats=Object.values(rows).filter(r=>r.ticket_number===ticket_number && r.chat_message);
+const list=Object.values(rows);
 
-chatBox.innerHTML="";
+ticketList.innerHTML="";
+
+if(list.length===0){
+ticketList.innerHTML="<div class='empty'>No Tickets</div>";
+return;
+}
+
+list.forEach(t=>{
+ticketList.innerHTML+=`
+<div class="ticket" onclick="selectTicket('${t.ticket_number}')">
+<b>${t.ticket_number}</b><br>
+${t.ticket_subject}<br>
+${t.ticket_status}
+</div>
+`;
+});
+
+updateKPI(list);
+
+}
+
+// KPI
+function updateKPI(list){
+
+all.innerText=list.length;
+
+open.innerText=list.filter(t=>t.ticket_status==="OPEN").length;
+progress.innerText=list.filter(t=>t.ticket_status==="IN_PROGRESS").length;
+resolved.innerText=list.filter(t=>t.ticket_status==="RESOLVED").length;
+closed.innerText=list.filter(t=>t.ticket_status==="CLOSED").length;
+
+}
+
+// SELECT
+function selectTicket(num){
+selectedTicket=num;
+details.innerText=num;
+loadChat(num);
+}
+
+// CHAT
+async function loadChat(num){
+
+const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,chat_message,chat_sender_type,chat_sender_name&limit=5000`,{
+headers:{"X-Authorization":"Bearer "+JWT}
+});
+
+const data=await res.json();
+
+const rows={};
+
+Object.entries(data).forEach(([k,arr])=>{
+(arr||[]).forEach(p=>{
+rows[p.ts]=rows[p.ts]||{};
+rows[p.ts][k]=p.value;
+});
+});
+
+const chats=Object.values(rows).filter(r=>r.ticket_number===num && r.chat_message);
+
+chat.innerHTML="";
 
 chats.forEach(c=>{
-chatBox.innerHTML+=`
+chat.innerHTML+=`
 <div class="msg ${c.chat_sender_type==="OEM"?"oem":"customer"}">
 <b>${c.chat_sender_name}</b><br>
 ${c.chat_message}
@@ -361,17 +352,29 @@ ${c.chat_message}
 
 }
 
-// SEND CHAT UI
-function sendChatUI(){
+// SEND CHAT
+async function sendChatUI(){
 
-sendChat({
+await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
+method:"POST",
+headers:{
+"X-Authorization":"Bearer "+JWT,
+"Content-Type":"application/json"
+},
+body:JSON.stringify([{
+ts:Date.now(),
+values:{
 ticket_number:selectedTicket,
-sender_type:"CUSTOMER",
-sender_name:username.value,
-message:chatInput.value
+chat_sender_type:"CUSTOMER",
+chat_sender_name:"ABC User",
+chat_message:chatInput.value
+}
+}])
 });
 
 chatInput.value="";
+loadChat(selectedTicket);
+
 }
 
 // INIT
