@@ -263,7 +263,9 @@ loadTickets();
 
 async function loadTickets(){
 
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=5000`,{
+const res = await fetch(
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000&agg=NONE`,
+{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
