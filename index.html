@@ -217,6 +217,7 @@ width:300px;
 </div>
 </div>
 
+<!-- ONLY SCRIPT PART UPDATED -->
 <script>
 
 const API="https://plantwiz.pimateck.in/api";
@@ -233,6 +234,7 @@ function closePopup(){popup.style.display="none";}
 async function createTicket(){
 
 const num="ABC-"+Date.now();
+const ts = Date.now(); // ✅ SAME TS
 
 await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
 method:"POST",
@@ -241,7 +243,7 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify([{
-ts:Date.now(),
+ts:ts,
 values:{
 ticket_number:num,
 ticket_subject:subject.value,
@@ -268,34 +270,33 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data=await res.json();
 
-// 🔥 CLEAN GROUPING (ONLY THIS)
+// 🔥 FINAL FIX (NO OVERWRITE ISSUE)
 const ticketMap = {};
 
 Object.entries(data).forEach(([key, arr]) => {
   (arr || []).forEach(p => {
 
-    if(key === "ticket_number"){
-      ticketMap[p.value] = ticketMap[p.value] || {
-        ticket_number: p.value,
-        ts: p.ts
-      };
-    }
+    // unique ticket entry using ts
+    const uniqueKey = p.ts;
 
-    Object.keys(ticketMap).forEach(tn => {
-      if(Math.abs(ticketMap[tn].ts - p.ts) < 5000){
-        ticketMap[tn][key] = p.value;
-      }
-    });
+    ticketMap[uniqueKey] = ticketMap[uniqueKey] || {
+      ts: p.ts
+    };
+
+    ticketMap[uniqueKey][key] = p.value;
 
   });
 });
 
 let list = Object.values(ticketMap);
 
-// ✅ FILTER
+// ✅ only valid tickets
+list = list.filter(t => t.ticket_number && t.ticket_subject);
+
+// ✅ filter customer
 list = list.filter(t => t.ticket_customer === "ABC");
 
-// ✅ SORT
+// ✅ sort latest first
 list.sort((a,b)=> b.ts - a.ts);
 
 ticketList.innerHTML="";
@@ -318,6 +319,7 @@ ${t.ticket_status || "-"}
 updateKPI(list);
 
 }
+
 // KPI
 function updateKPI(list){
 
@@ -340,7 +342,7 @@ loadChat(num);
 // CHAT
 async function loadChat(num){
 
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,chat_message,chat_sender_type,chat_sender_name,chat_number&limit=5000`,{
+const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=chat_message,chat_sender_type,chat_sender_name,chat_number,chat_time&limit=5000`,{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
@@ -354,11 +356,13 @@ rows[p.ts]=rows[p.ts]||{};
 rows[p.ts][k]=p.value;
 });
 });
+
 const chats = Object.values(rows).filter(
   r => r.chat_number === num && r.chat_message
 );
 
-chats.sort((a,b)=> a.chat_time - b.chat_time);
+// ✅ FIX SORT
+chats.sort((a,b)=> (a.chat_time||0) - (b.chat_time||0));
 
 chat.innerHTML="";
 
@@ -388,7 +392,8 @@ values:{
 chat_number:selectedTicket,
 chat_sender_type:"CUSTOMER",
 chat_sender_name:"ABC User",
-chat_message:chatInput.value
+chat_message:chatInput.value,
+chat_time: Date.now() // ✅ IMPORTANT FIX
 }
 }])
 });
