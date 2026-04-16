@@ -277,7 +277,7 @@ rows[p.ts][k]=p.value;
 });
 });
 
-const list=Object.values(rows);
+const list = Object.values(rows).filter(r => r.ticket_subject);
 
 ticketList.innerHTML="";
 
@@ -322,7 +322,7 @@ loadChat(num);
 // CHAT
 async function loadChat(num){
 
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,chat_message,chat_sender_type,chat_sender_name&limit=5000`,{
+const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,chat_message,chat_sender_type,chat_sender_name,chat_number&limit=5000`,{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
@@ -337,7 +337,9 @@ rows[p.ts][k]=p.value;
 });
 });
 
-const chats=Object.values(rows).filter(r=>r.ticket_number===num && r.chat_message);
+const chats = Object.values(rows).filter(
+  r => r.chat_number === num && r.chat_message
+);
 
 chat.innerHTML="";
 
