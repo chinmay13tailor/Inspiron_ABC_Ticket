@@ -264,53 +264,56 @@ loadTickets();
 async function loadTickets(){
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000&agg=NONE`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000`,
 {
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
-const data=await res.json();
+const data = await res.json();
 
+// 🔥 FINAL FIX: GROUP BY ticket_number ONLY
 const ticketMap = {};
 
-// 🔥 STEP 1: collect ticket_number first
+// STEP 1: create ticket base
 (data.ticket_number || []).forEach(p => {
-  ticketMap[p.value] = {
-    ticket_number: p.value,
-    ts: p.ts
-  };
+
+  if(!ticketMap[p.value]){
+    ticketMap[p.value] = {
+      ticket_number: p.value,
+      ts: p.ts
+    };
+  } else {
+    // latest ts update
+    if(p.ts > ticketMap[p.value].ts){
+      ticketMap[p.value].ts = p.ts;
+    }
+  }
+
 });
 
-// 🔥 STEP 2: map other fields using nearest ts
-Object.entries(data).forEach(([key, arr]) => {
-  if(key === "ticket_number") return;
+// STEP 2: attach fields
+["ticket_subject","ticket_status","ticket_customer"].forEach(key=>{
+  (data[key] || []).forEach(p => {
 
-  (arr || []).forEach(p => {
-
-    let closestTicket = null;
-    let minDiff = Infinity;
-
+    // find matching ticket using SAME VALUE HISTORY
     Object.values(ticketMap).forEach(t => {
-      const diff = Math.abs(t.ts - p.ts);
-      if(diff < minDiff){
-        minDiff = diff;
-        closestTicket = t;
-      }
-    });
 
-    if(closestTicket){
-      closestTicket[key] = p.value;
-    }
+      // 🔥 IMPORTANT: match using closest ts per ticket
+      if(Math.abs(t.ts - p.ts) < 5000){
+        t[key] = p.value;
+      }
+
+    });
 
   });
 });
 
 let list = Object.values(ticketMap);
 
-// ✅ filter
+// ✅ filter customer
 list = list.filter(t => t.ticket_customer === "ABC");
 
-// ✅ remove broken rows
+// ✅ remove invalid
 list = list.filter(t => t.ticket_subject);
 
 // ✅ sort latest first
@@ -323,12 +326,13 @@ ticketList.innerHTML="<div class='empty'>No Tickets</div>";
 return;
 }
 
+// ✅ render
 list.forEach(t=>{
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}')">
 <b>${t.ticket_number}</b><br>
-${t.ticket_subject}<br>
-${t.ticket_status}
+${t.ticket_subject || "-"}<br>
+${t.ticket_status || "-"}
 </div>
 `;
 });
