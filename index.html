@@ -260,9 +260,10 @@ loadTickets();
 }
 
 // LOAD TICKETS
+// LOAD TICKETS
 async function loadTickets(){
 
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status&limit=5000`,{
+const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=5000`,{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
@@ -272,12 +273,33 @@ const rows={};
 
 Object.entries(data).forEach(([k,arr])=>{
 (arr||[]).forEach(p=>{
-rows[p.ts]=rows[p.ts]||{};
+rows[p.ts]=rows[p.ts]||{ts:p.ts};
 rows[p.ts][k]=p.value;
 });
 });
 
-const list = Object.values(rows).filter(r => r.ticket_subject);
+// 🔥 GROUP BY ticket_number
+const ticketMap = {};
+
+Object.values(rows).forEach(r => {
+
+  if(!r.ticket_number) return;
+
+  if(!ticketMap[r.ticket_number]){
+    ticketMap[r.ticket_number] = r;
+  } else {
+    ticketMap[r.ticket_number] = { ...ticketMap[r.ticket_number], ...r };
+  }
+
+});
+
+let list = Object.values(ticketMap);
+
+// 🔥 ADD THIS (FILTER CUSTOMER)
+list = list.filter(t => t.ticket_customer === "ABC");
+
+// 🔥 ADD THIS (LATEST FIRST)
+list.sort((a,b)=> b.ts - a.ts);
 
 ticketList.innerHTML="";
 
