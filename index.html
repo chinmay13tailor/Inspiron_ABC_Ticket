@@ -260,7 +260,6 @@ loadTickets();
 }
 
 // LOAD TICKETS
-// LOAD TICKETS
 async function loadTickets(){
 
 const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=5000`,{
@@ -269,36 +268,34 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data=await res.json();
 
-const rows={};
-
-Object.entries(data).forEach(([k,arr])=>{
-(arr||[]).forEach(p=>{
-rows[p.ts]=rows[p.ts]||{ts:p.ts};
-rows[p.ts][k]=p.value;
-});
-});
-
-// 🔥 GROUP BY ticket_number
+// 🔥 CLEAN GROUPING (ONLY THIS)
 const ticketMap = {};
 
-Object.values(rows).forEach(r => {
+Object.entries(data).forEach(([key, arr]) => {
+  (arr || []).forEach(p => {
 
-  if(!r.ticket_number) return;
+    if(key === "ticket_number"){
+      ticketMap[p.value] = ticketMap[p.value] || {
+        ticket_number: p.value,
+        ts: p.ts
+      };
+    }
 
-  if(!ticketMap[r.ticket_number]){
-    ticketMap[r.ticket_number] = r;
-  } else {
-    ticketMap[r.ticket_number] = { ...ticketMap[r.ticket_number], ...r };
-  }
+    Object.keys(ticketMap).forEach(tn => {
+      if(Math.abs(ticketMap[tn].ts - p.ts) < 5000){
+        ticketMap[tn][key] = p.value;
+      }
+    });
 
+  });
 });
 
 let list = Object.values(ticketMap);
 
-// 🔥 ADD THIS (FILTER CUSTOMER)
+// ✅ FILTER
 list = list.filter(t => t.ticket_customer === "ABC");
 
-// 🔥 ADD THIS (LATEST FIRST)
+// ✅ SORT
 list.sort((a,b)=> b.ts - a.ts);
 
 ticketList.innerHTML="";
@@ -312,8 +309,8 @@ list.forEach(t=>{
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}')">
 <b>${t.ticket_number}</b><br>
-${t.ticket_subject}<br>
-${t.ticket_status}
+${t.ticket_subject || "-"}<br>
+${t.ticket_status || "-"}
 </div>
 `;
 });
@@ -321,7 +318,6 @@ ${t.ticket_status}
 updateKPI(list);
 
 }
-
 // KPI
 function updateKPI(list){
 
@@ -358,10 +354,11 @@ rows[p.ts]=rows[p.ts]||{};
 rows[p.ts][k]=p.value;
 });
 });
-
 const chats = Object.values(rows).filter(
   r => r.chat_number === num && r.chat_message
 );
+
+chats.sort((a,b)=> a.chat_time - b.chat_time);
 
 chat.innerHTML="";
 
