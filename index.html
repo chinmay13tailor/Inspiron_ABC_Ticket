@@ -263,86 +263,85 @@ loadTickets();
 
 async function loadTickets(){
 
-try {
-  // 📡 API se data fetch
-  const res = await fetch(
-    `${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000`,
-    { headers: {"X-Authorization": "Bearer " + JWT} }
-  );
+const res = await fetch(
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000`,
+{
+headers:{"X-Authorization":"Bearer "+JWT}
+});
 
-  if(!res.ok) throw new Error("API Error: " + res.status);
-  const data = await res.json();
+const data = await res.json();
 
-  // ✅ STEP 1: Ticket map banao
-  const ticketMap = {};
-  (data.ticket_number || []).forEach(tn => {
-    ticketMap[tn.value] = {
-      ticket_number: tn.value,
-      ts: tn.ts,
-      ticket_subject: "-",
-      ticket_status: "-",
-      ticket_customer: "-",
-      ticket_machine: "-"
-    };
-  });
+// ✅ STEP 1: ABC tickets find karo
+const abcTickets = new Set();
 
-  // ✅ STEP 2: Helper function - reusable field matching
-  const attachFieldToTickets = (dataArray, fieldName) => {
-    (dataArray || []).forEach(entry => {
-      let closestTicket = null;
-      let minDiff = Infinity;
-      
-      for(let ticketNum in ticketMap){
-        const diff = Math.abs(ticketMap[ticketNum].ts - entry.ts);
-        if(diff < minDiff){
-          minDiff = diff;
-          closestTicket = ticketNum;
-        }
-      }
-      
-      if(closestTicket && minDiff < 30000){
-        ticketMap[closestTicket][fieldName] = entry.value;
-      }
-    });
-  };
+(data.ticket_customer || []).forEach(p => {
+  if(p.value === "ABC"){
 
-  // ✅ STEP 3: All fields attach karo
-  attachFieldToTickets(data.ticket_subject, "ticket_subject");
-  attachFieldToTickets(data.ticket_status, "ticket_status");
-  attachFieldToTickets(data.ticket_customer, "ticket_customer");
-  attachFieldToTickets(data.ticket_machine, "ticket_machine");
+    const match = (data.ticket_number || []).find(tn => 
+      Math.abs(tn.ts - p.ts) < 10000
+    );
 
-  // ✅ STEP 4: Filter & Sort
-  let list = Object.values(ticketMap)
-    .filter(t => t.ticket_customer === "ABC")
-    .sort((a, b) => b.ts - a.ts);
-
-  // ✅ STEP 5: Render
-  ticketList.innerHTML = "";
-  if(list.length === 0){
-    ticketList.innerHTML = "<div class='empty'>No Tickets</div>";
-    updateKPI([]);
-    return;
+    if(match){
+      abcTickets.add(match.value);
+    }
   }
+});
 
-  list.forEach(ticket => {
-    ticketList.innerHTML += `
-      <div class="ticket" onclick="selectTicket('${ticket.ticket_number}')">
-        <b>${ticket.ticket_number}</b><br>
-        ${ticket.ticket_subject}<br>
-        <span style="color:${statusColor};font-size:12px;font-weight:bold;">
-          ${ticket.ticket_status}
-        </span>
-      </div>
-    `;
+// ✅ STEP 2: ticket map banao
+const ticketMap = {};
+
+(data.ticket_number || []).forEach(p => {
+  if(abcTickets.has(p.value)){
+
+    if(!ticketMap[p.value]){
+      ticketMap[p.value] = {
+        ticket_number: p.value,
+        ts: p.ts
+      };
+    } else if(p.ts > ticketMap[p.value].ts){
+      ticketMap[p.value].ts = p.ts;
+    }
+
+  }
+});
+
+// ✅ STEP 3: subject & status attach
+["ticket_subject","ticket_status"].forEach(key=>{
+  (data[key] || []).forEach(p => {
+
+    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
+
+    if(match && ticketMap[match.value]){
+      ticketMap[match.value][key] = p.value;
+    }
+
   });
+});
 
-  updateKPI(list);
+let list = Object.values(ticketMap);
 
-} catch(error){
-  console.error("loadTickets Error:", error);
-  ticketList.innerHTML = "<div class='empty'>Error loading tickets</div>";
+// ✅ sort
+list.sort((a,b)=> b.ts - a.ts);
+
+// ✅ render
+ticketList.innerHTML="";
+
+if(list.length===0){
+ticketList.innerHTML="<div class='empty'>No Tickets</div>";
+return;
 }
+
+list.forEach(t=>{
+ticketList.innerHTML+=`
+<div class="ticket" onclick="selectTicket('${t.ticket_number}')">
+<b>${t.ticket_number}</b><br>
+${t.ticket_subject || "-"}<br>
+${t.ticket_status || "-"}
+</div>
+`;
+});
+
+updateKPI(list);
 
 }
 // KPI
