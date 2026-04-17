@@ -271,40 +271,45 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data = await res.json();
 
-const ticketMap = {};
+// 🔥 STEP 1: BUILD ROWS (TS BASED - CORRECT WAY)
+const rows = {};
 
-// ✅ STEP 1: create tickets
-(data.ticket_number || []).forEach(p => {
-  ticketMap[p.value] = {
-    ticket_number: p.value,
-    ts: p.ts
-  };
-});
-
-// ✅ STEP 2: attach fields STRICTLY by order (NO TS MATCH)
-["ticket_subject","ticket_status","ticket_customer"].forEach(key=>{
-  (data[key] || []).forEach((p, index) => {
-
-    const ticketNumbers = Object.keys(ticketMap);
-
-    if(ticketNumbers[index]){
-      ticketMap[ticketNumbers[index]][key] = p.value;
-    }
-
+Object.entries(data).forEach(([key, arr])=>{
+  (arr || []).forEach(p=>{
+    rows[p.ts] = rows[p.ts] || { ts: p.ts };
+    rows[p.ts][key] = p.value;
   });
 });
 
-let list = Object.values(ticketMap);
+// 🔥 STEP 2: CONVERT TO LIST
+let list = Object.values(rows);
 
-// ✅ filter
+// 🔥 STEP 3: KEEP ONLY VALID TICKETS
+list = list.filter(r => r.ticket_number && r.ticket_subject);
+
+// 🔥 STEP 4: REMOVE DUPLICATES (IMPORTANT)
+const uniqueMap = {};
+
+list.forEach(t=>{
+  if(!uniqueMap[t.ticket_number]){
+    uniqueMap[t.ticket_number] = t;
+  } else {
+    // keep latest
+    if(t.ts > uniqueMap[t.ticket_number].ts){
+      uniqueMap[t.ticket_number] = t;
+    }
+  }
+});
+
+list = Object.values(uniqueMap);
+
+// 🔥 STEP 5: FILTER CUSTOMER
 list = list.filter(t => t.ticket_customer === "ABC");
 
-// ✅ remove invalid
-list = list.filter(t => t.ticket_subject);
-
-// ✅ sort
+// 🔥 STEP 6: SORT
 list.sort((a,b)=> b.ts - a.ts);
 
+// 🔥 RENDER
 ticketList.innerHTML="";
 
 if(list.length===0){
