@@ -155,6 +155,47 @@ padding:20px;
 border-radius:12px;
 width:300px;
 }
+  .details{
+padding:12px;
+border-bottom:1px solid #eee;
+}
+
+.ticketTitle{
+font-size:16px;
+font-weight:600;
+margin-bottom:6px;
+}
+
+.badge{
+font-size:11px;
+padding:3px 8px;
+border-radius:6px;
+margin-left:8px;
+}
+
+.sectionRow{
+display:flex;
+justify-content:space-between;
+margin-top:8px;
+font-size:13px;
+}
+
+.label{
+color:#777;
+font-size:12px;
+}
+
+.value{
+font-weight:500;
+}
+
+.descBox{
+background:#f1f5f9;
+padding:8px;
+border-radius:6px;
+margin-top:8px;
+font-size:13px;
+}
 </style>
 </head>
 
@@ -200,12 +241,15 @@ width:300px;
 <!-- RIGHT -->
 <div class="right">
 
-<div class="details" id="details">Select Ticket</div>
+<!-- 🔷 TICKET DETAILS -->
+<div class="details" id="details"></div>
 
+<!-- 🔷 CHAT -->
 <div class="chat" id="chat"></div>
 
+<!-- 🔷 INPUT -->
 <div class="inputBox">
-<input id="chatInput">
+<input id="chatInput" placeholder="Add a comment...">
 <button onclick="sendChatUI()">Send</button>
 </div>
 
@@ -248,7 +292,7 @@ const DEVICE_ID="2b113dd0-2ce1-11f1-91db-cbfa9ac9843b";
 const JWT=new URLSearchParams(location.search).get("token")||"";
 
 let selectedTicket=null;
-let fullTicketList = []; // ✅ NEW
+let fullTicketList = [];
 
 // POPUP
 function openPopup(){popup.style.display="flex";}
@@ -282,14 +326,13 @@ ticket_criticality:priority.value
 
 closePopup();
 loadTickets();
-
 }
 
 // ================= LOAD TICKETS =================
 async function loadTickets(){
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer,ticket_machine,ticket_assign_to,ticket_criticality&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer,ticket_machine,ticket_assign_to,ticket_criticality,ticket_description&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
 {
 headers:{"X-Authorization":"Bearer "+JWT}
 });
@@ -314,7 +357,7 @@ const ticketMap = {};
 });
 
 // STEP 2
-["ticket_subject","ticket_status","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality"].forEach(key=>{
+["ticket_subject","ticket_status","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality","ticket_description"].forEach(key=>{
   (data[key] || []).forEach(p => {
 
     const match = (data.ticket_number || []).find(tn => 
@@ -328,32 +371,27 @@ const ticketMap = {};
   });
 });
 
-// ✅ STORE GLOBAL LIST
+// STORE
 fullTicketList = Object.values(ticketMap);
-
-// ✅ OPTIONAL FILTER (ABC)
 fullTicketList = fullTicketList.filter(t => t.ticket_customer === "ABC");
 
-// ✅ APPLY FILTER (IMPORTANT)
+// APPLY FILTER
 applyFilters();
 }
 
-// ================= APPLY FILTER =================
+// ================= FILTER =================
 function applyFilters(){
 
 const priority = document.getElementById("priorityFilter")?.value || "ALL";
 
 let list = [...fullTicketList];
 
-// PRIORITY FILTER
 if(priority !== "ALL"){
   list = list.filter(t => t.ticket_criticality === priority);
 }
 
-// SORT
 list.sort((a,b)=> b.ts - a.ts);
 
-// RENDER
 ticketList.innerHTML="";
 
 if(list.length===0){
@@ -367,7 +405,6 @@ list.forEach(t=>{
 const priority = t.ticket_criticality || "LOW";
 const status = t.ticket_status || "OPEN";
 
-// COLORS
 let priorityColor = "#3b82f6";
 if(priority==="HIGH") priorityColor="#ef4444";
 if(priority==="MEDIUM") priorityColor="#f59e0b";
@@ -378,30 +415,26 @@ if(status==="IN_PROGRESS") statusColor="#3b82f6";
 if(status==="RESOLVED") statusColor="#22c55e";
 
 ticketList.innerHTML+=`
-<div class="ticket" data-id="${t.ticket_number}" onclick="selectTicket('${t.ticket_number}', event)">
+<div class="ticket" onclick="selectTicket('${t.ticket_number}', event)">
 
-<div style="display:flex; justify-content:space-between; align-items:center;">
-<div style="font-weight:600;">
-${t.ticket_number}
-<span style="margin-left:8px;font-size:12px;padding:2px 6px;border-radius:6px;background:${priorityColor}20;color:${priorityColor};">
-${priority}
-</span>
+<div style="display:flex; justify-content:space-between;">
+<div>
+<b>${t.ticket_number}</b>
+<span style="color:${priorityColor}; margin-left:6px;">${priority}</span>
 </div>
 
-<div style="font-size:12px;padding:2px 6px;border-radius:6px;background:${statusColor}20;color:${statusColor};font-weight:600;">
+<div style="color:${statusColor}; font-size:12px;">
 ${status}
 </div>
 </div>
 
-<div style="margin-top:6px;font-weight:500;">
-${t.ticket_subject || "-"}
+<div>${t.ticket_subject || "-"}</div>
+
+<div style="font-size:12px; color:#666;">
+${t.ticket_machine || "-"} | ${t.ticket_customer || "-"}
 </div>
 
-<div style="font-size:12px;color:#666;margin-top:4px;">
-${t.ticket_machine || "-"} &nbsp;&nbsp;|&nbsp;&nbsp; ${t.ticket_customer || "-"}
-</div>
-
-<div style="font-size:12px;color:#2563eb;margin-top:4px;">
+<div style="font-size:12px; color:#2563eb;">
 👤 ${t.ticket_assign_to || "Unassigned"}
 </div>
 
@@ -412,11 +445,10 @@ ${t.ticket_machine || "-"} &nbsp;&nbsp;|&nbsp;&nbsp; ${t.ticket_customer || "-"}
 updateKPI(list);
 }
 
-// KPI
+// ================= KPI =================
 function updateKPI(list){
 
 all.innerText=list.length;
-
 open.innerText=list.filter(t=>t.ticket_status==="OPEN").length;
 progress.innerText=list.filter(t=>t.ticket_status==="IN_PROGRESS").length;
 resolved.innerText=list.filter(t=>t.ticket_status==="RESOLVED").length;
@@ -424,13 +456,53 @@ closed.innerText=list.filter(t=>t.ticket_status==="CLOSED").length;
 
 }
 
-// SELECT
+// ================= SELECT =================
 function selectTicket(num, event){
 
 selectedTicket = num;
-details.innerText = num;
+
+// 🔥 FIND FULL DATA
+const t = fullTicketList.find(x => x.ticket_number === num);
+
+// 🔥 RENDER DETAILS
+details.innerHTML = `
+<div style="font-weight:600; font-size:16px;">
+${t.ticket_number}
+</div>
+
+<div style="margin-top:6px; font-weight:600;">
+${t.ticket_subject || "-"}
+</div>
+
+<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:13px;">
+<div>
+Machine<br><b>${t.ticket_machine || "-"}</b>
+</div>
+
+<div>
+Customer<br><b>${t.ticket_customer || "-"}</b>
+</div>
+</div>
+
+<div style="margin-top:10px;">
+Assigned To<br><b>${t.ticket_assign_to || "Unassigned"}</b>
+</div>
+
+<div style="margin-top:10px;">
+Created<br><b>${new Date(t.ts).toLocaleString()}</b>
+</div>
+
+<div style="margin-top:10px;">
+Description
+<div style="background:#f1f5f9; padding:8px; border-radius:6px;">
+${t.ticket_description || "No description"}
+</div>
+</div>
+`;
+
 loadChat(num);
 
+// ACTIVE UI
 document.querySelectorAll('.ticket').forEach(el=>{
   el.classList.remove('active');
 });
@@ -441,7 +513,7 @@ if(event && event.currentTarget){
 
 }
 
-// CHAT
+// ================= CHAT =================
 async function loadChat(num){
 
 const res=await fetch(
@@ -480,7 +552,7 @@ ${c.chat_message}
 
 }
 
-// SEND CHAT
+// ================= SEND =================
 async function sendChatUI(){
 
 await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
@@ -503,7 +575,6 @@ chat_time: Date.now()
 
 chatInput.value="";
 loadChat(selectedTicket);
-
 }
 
 // INIT
