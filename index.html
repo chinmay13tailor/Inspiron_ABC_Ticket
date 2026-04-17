@@ -72,6 +72,10 @@ border:1px solid #eee;
 .ticket:hover{
 background:#f1f5f9;
 }
+.ticket.active{
+border-left:4px solid #2563eb;
+background:#f8fafc;
+}
 
 /* RIGHT PANEL */
 .right{
@@ -336,7 +340,7 @@ if(status==="IN_PROGRESS") statusColor="#3b82f6";
 if(status==="RESOLVED") statusColor="#22c55e";
 
 ticketList.innerHTML+=`
-<div class="ticket" onclick="selectTicket('${t.ticket_number}')">
+<div class="ticket" data-id="${t.ticket_number}" onclick="selectTicket('${t.ticket_number}', event)">
 
   <!-- TOP ROW -->
   <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -402,10 +406,22 @@ closed.innerText=list.filter(t=>t.ticket_status==="CLOSED").length;
 }
 
 // SELECT
-function selectTicket(num){
-selectedTicket=num;
-details.innerText=num;
+function selectTicket(num, event){
+
+selectedTicket = num;
+details.innerText = num;
 loadChat(num);
+
+// 🔥 remove old active
+document.querySelectorAll('.ticket').forEach(el=>{
+  el.classList.remove('active');
+});
+
+// 🔥 add active to clicked
+if(event && event.currentTarget){
+  event.currentTarget.classList.add('active');
+}
+
 }
 
 // CHAT
