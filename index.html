@@ -264,52 +264,37 @@ loadTickets();
 async function loadTickets(){
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&limit=10000`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status&limit=10000`,
 {
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
 const data = await res.json();
 
-// ✅ STEP 1: ABC tickets find karo
-const abcTickets = new Set();
+// 🔥 STEP 1: UNIQUE TICKETS
+const ticketMap = {};
 
-(data.ticket_customer || []).forEach(p => {
-  if(p.value === "ABC"){
+(data.ticket_number || []).forEach(p => {
+
+  if(!ticketMap[p.value]){
+    ticketMap[p.value] = {
+      ticket_number: p.value,
+      ts: p.ts
+    };
+  } 
+  else if(p.ts > ticketMap[p.value].ts){
+    ticketMap[p.value].ts = p.ts;
+  }
+
+});
+
+// 🔥 STEP 2: ATTACH SUBJECT & STATUS
+["ticket_subject","ticket_status"].forEach(key=>{
+  (data[key] || []).forEach(p => {
 
     const match = (data.ticket_number || []).find(tn => 
       Math.abs(tn.ts - p.ts) < 10000
     );
-
-    if(match){
-      abcTickets.add(match.value);
-    }
-  }
-});
-
-// ✅ STEP 2: ticket map banao
-const ticketMap = {};
-
-(data.ticket_number || []).forEach(p => {
-  if(abcTickets.has(p.value)){
-
-    if(!ticketMap[p.value]){
-      ticketMap[p.value] = {
-        ticket_number: p.value,
-        ts: p.ts
-      };
-    } else if(p.ts > ticketMap[p.value].ts){
-      ticketMap[p.value].ts = p.ts;
-    }
-
-  }
-});
-
-// ✅ STEP 3: subject & status attach
-["ticket_subject","ticket_status"].forEach(key=>{
-  (data[key] || []).forEach(p => {
-
-    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
 
     if(match && ticketMap[match.value]){
       ticketMap[match.value][key] = p.value;
@@ -320,10 +305,10 @@ const ticketMap = {};
 
 let list = Object.values(ticketMap);
 
-// ✅ sort
+// 🔥 SORT LATEST FIRST
 list.sort((a,b)=> b.ts - a.ts);
 
-// ✅ render
+// 🔥 RENDER
 ticketList.innerHTML="";
 
 if(list.length===0){
