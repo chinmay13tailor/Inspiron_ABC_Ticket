@@ -363,7 +363,9 @@ loadChat(num);
 // CHAT
 async function loadChat(num){
 
-const res=await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=chat_message,chat_sender_type,chat_sender_name,chat_number,chat_time&limit=5000`,{
+const res=await fetch(
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=chat_message,chat_sender_type,chat_sender_name,chat_number,chat_time&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+{
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
