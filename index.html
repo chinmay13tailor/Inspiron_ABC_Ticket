@@ -220,31 +220,35 @@ font-size:13px;
   position:relative;
   display:flex;
   flex-direction:column;
-  justify-content:center;
-  min-height:90px;
+  align-items:flex-start;   /* 🔥 LEFT ALIGN */
+  justify-content:flex-start;
+  min-height:100px;
   border:1px solid #e5e7eb;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
 }
 
 .kpiCard .icon{
   position:absolute;
-  top:10px;
-  left:10px;
+  top:12px;
+  left:12px;
   font-size:14px;
-  background:#f1f5f9;
+  background:#eef2ff;
   padding:6px;
   border-radius:8px;
 }
 
+
 .kpiCard .label{
   font-size:13px;
-  color:#666;
-  margin-top:18px;
+  color:#444;
+  margin-top:4px;
 }
 
 .kpiCard .value{
-  font-size:22px;
+  font-size:24px;
   font-weight:700;
-  margin-top:4px;
+  margin-top:32px;
+  color:#111;
 }
 
 /* COLORS (important for exact match) */
@@ -268,6 +272,31 @@ font-size:13px;
 .kpiCard.closed{
   border:2px solid #d1d5db;
 }
+  .kpiCard .sub{
+  font-size:11px;
+  color:#888;
+}
+  .kpiCard::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:10px;
+  bottom:10px;
+  width:4px;
+  border-radius:10px;
+}
+
+/* COLORS */
+.kpiCard.total::before{background:#3b82f6;}
+.kpiCard.open::before{background:#22c55e;}
+.kpiCard.progress::before{background:#f59e0b;}
+.kpiCard.resolved::before{background:#ef4444;}
+.kpiCard.closed::before{background:#8b5cf6;}
+  .kpiCard.total .icon{background:#dbeafe;color:#2563eb;}
+.kpiCard.open .icon{background:#dcfce7;color:#16a34a;}
+.kpiCard.progress .icon{background:#fef3c7;color:#d97706;}
+.kpiCard.resolved .icon{background:#fee2e2;color:#dc2626;}
+.kpiCard.closed .icon{background:#ede9fe;color:#7c3aed;}
 </style>
 </head>
 
@@ -278,32 +307,32 @@ font-size:13px;
 
   <div class="kpiCard total">
     <div class="icon">📊</div>
-    <div class="label">All Tickets</div>
     <div class="value" id="all">0</div>
+    <div class="label">All Tickets</div>
   </div>
 
   <div class="kpiCard open">
     <div class="icon">🟦</div>
-    <div class="label">Open</div>
     <div class="value" id="open">0</div>
+    <div class="label">Open</div>
   </div>
 
   <div class="kpiCard progress">
     <div class="icon">🟧</div>
-    <div class="label">In Progress</div>
     <div class="value" id="progress">0</div>
+    <div class="label">In Progress</div>
   </div>
 
   <div class="kpiCard resolved">
     <div class="icon">🟩</div>
-    <div class="label">Resolved</div>
     <div class="value" id="resolved">0</div>
+    <div class="label">Resolved</div>
   </div>
 
   <div class="kpiCard closed">
     <div class="icon">⚪</div>
-    <div class="label">Closed</div>
     <div class="value" id="closed">0</div>
+    <div class="label">Closed</div>
   </div>
 
 </div>
