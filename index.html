@@ -328,18 +328,7 @@ ${t.ticket_status || "-"}
 </div>
 `;
 });
-
 updateKPI(list);
-    console.log("FULL API DATA:", data);
-console.log("ticket_number:", data.ticket_number);
-  console.log("TOTAL ticket_number rows:", (data.ticket_number || []).length);
-  const uniqueNums = [...new Set((data.ticket_number || []).map(x => x.value))];
-console.log("UNIQUE ticket numbers:", uniqueNums);
-  console.log("ticketMap BEFORE:", ticketMap);
-  console.log("ticketMap AFTER:", ticketMap);
-console.log("FINAL LIST:", list);
-  list.forEach(t=>{
-  console.log("RENDERING:", t.ticket_number);
 }
 
 // KPI
