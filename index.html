@@ -206,18 +206,67 @@ border-radius:6px;
 margin-top:8px;
 font-size:13px;
 }
-  .kpi div{
-  background:white;
-  padding:14px;
-  border-radius:12px;
-  text-align:center;
-  font-weight:600;
-  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  .kpi{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin-bottom:12px;
 }
 
-.kpi div span{
-  font-size:12px;
-  color:#777;
+.kpiCard{
+  background:#fff;
+  padding:16px;
+  border-radius:14px;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:90px;
+  border:1px solid #e5e7eb;
+}
+
+.kpiCard .icon{
+  position:absolute;
+  top:10px;
+  left:10px;
+  font-size:14px;
+  background:#f1f5f9;
+  padding:6px;
+  border-radius:8px;
+}
+
+.kpiCard .label{
+  font-size:13px;
+  color:#666;
+  margin-top:18px;
+}
+
+.kpiCard .value{
+  font-size:22px;
+  font-weight:700;
+  margin-top:4px;
+}
+
+/* COLORS (important for exact match) */
+
+.kpiCard.total{
+  border:2px solid #3b82f6;
+}
+
+.kpiCard.open{
+  border:2px solid #60a5fa;
+}
+
+.kpiCard.progress{
+  border:2px solid #f59e0b;
+}
+
+.kpiCard.resolved{
+  border:2px solid #22c55e;
+}
+
+.kpiCard.closed{
+  border:2px solid #d1d5db;
 }
 </style>
 </head>
@@ -226,11 +275,37 @@ font-size:13px;
 
 <!-- KPI -->
 <div class="kpi">
-<div id="all">0<br>All</div>
-<div id="open">0<br>Open</div>
-<div id="progress">0<br>In Progress</div>
-<div id="resolved">0<br>Resolved</div>
-<div id="closed">0<br>Closed</div>
+
+  <div class="kpiCard total">
+    <div class="icon">📊</div>
+    <div class="label">All Tickets</div>
+    <div class="value" id="all">0</div>
+  </div>
+
+  <div class="kpiCard open">
+    <div class="icon">🟦</div>
+    <div class="label">Open</div>
+    <div class="value" id="open">0</div>
+  </div>
+
+  <div class="kpiCard progress">
+    <div class="icon">🟧</div>
+    <div class="label">In Progress</div>
+    <div class="value" id="progress">0</div>
+  </div>
+
+  <div class="kpiCard resolved">
+    <div class="icon">🟩</div>
+    <div class="label">Resolved</div>
+    <div class="value" id="resolved">0</div>
+  </div>
+
+  <div class="kpiCard closed">
+    <div class="icon">⚪</div>
+    <div class="label">Closed</div>
+    <div class="value" id="closed">0</div>
+  </div>
+
 </div>
 
 <div class="container">
@@ -510,11 +585,11 @@ list.forEach(t => {
 
 // ✅ IMPORTANT: use innerHTML (not innerText)
 
-document.getElementById("all").innerHTML = total + "<br>All";
-document.getElementById("open").innerHTML = open + "<br>Open";
-document.getElementById("progress").innerHTML = progress + "<br>In Progress";
-document.getElementById("resolved").innerHTML = resolved + "<br>Resolved";
-document.getElementById("closed").innerHTML = closed + "<br>Closed";
+document.getElementById("all").innerText = total;
+document.getElementById("open").innerText = open;
+document.getElementById("progress").innerText = progress;
+document.getElementById("resolved").innerText = resolved;
+document.getElementById("closed").innerText = closed;
 
 }
 
