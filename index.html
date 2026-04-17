@@ -420,11 +420,28 @@ ticketList.innerHTML+=`
 <div style="display:flex; justify-content:space-between;">
 <div>
 <b>${t.ticket_number}</b>
-<span style="color:${priorityColor}; margin-left:6px;">${priority}</span>
+<span style="
+margin-left:8px;
+font-size:11px;
+padding:3px 8px;
+border-radius:999px;
+background:${priorityColor}20;
+color:${priorityColor};
+font-weight:600;
+">
+${priority}
+</span>
 </div>
 
-<div style="color:${statusColor}; font-size:12px;">
-${status}
+<div style="
+font-size:11px;
+padding:3px 8px;
+border-radius:999px;
+background:${statusColor}20;
+color:${statusColor};
+font-weight:600;
+">
+${status.replace("_"," ")}
 </div>
 </div>
 
@@ -457,6 +474,18 @@ closed.innerText=list.filter(t=>t.ticket_status==="CLOSED").length;
 }
 
 // ================= SELECT =================
+  function getPriorityColor(p){
+if(p==="HIGH") return "#ef4444";
+if(p==="MEDIUM") return "#f59e0b";
+return "#3b82f6";
+}
+
+function getStatusColor(s){
+if(s==="ASSIGNED") return "#f59e0b";
+if(s==="IN_PROGRESS") return "#3b82f6";
+if(s==="RESOLVED") return "#22c55e";
+return "#ef4444";
+}
 function selectTicket(num, event){
 
 selectedTicket = num;
@@ -466,37 +495,86 @@ const t = fullTicketList.find(x => x.ticket_number === num);
 
 // 🔥 RENDER DETAILS
 details.innerHTML = `
-<div style="font-weight:600; font-size:16px;">
-${t.ticket_number}
+<div style="padding:10px;">
+
+<!-- HEADER -->
+<div style="display:flex; justify-content:space-between; align-items:center;">
+
+  <div style="font-size:18px; font-weight:600;">
+    ${t.ticket_number}
+  </div>
+
+  <div style="display:flex; gap:6px;">
+  
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getPriorityColor(t.ticket_criticality)}20;
+      color:${getPriorityColor(t.ticket_criticality)};
+      font-weight:600;
+    ">
+      ${t.ticket_criticality || "LOW"}
+    </span>
+
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getStatusColor(t.ticket_status)}20;
+      color:${getStatusColor(t.ticket_status)};
+      font-weight:600;
+    ">
+      ${(t.ticket_status || "OPEN").replace("_"," ")}
+    </span>
+
+  </div>
+
 </div>
 
-<div style="margin-top:6px; font-weight:600;">
-${t.ticket_subject || "-"}
+<!-- SUBJECT -->
+<div style="margin-top:8px; font-weight:600; font-size:15px;">
+  ${t.ticket_subject || "-"}
 </div>
 
-<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:13px;">
-<div>
-Machine<br><b>${t.ticket_machine || "-"}</b>
+<!-- INFO GRID -->
+<div style="display:flex; justify-content:space-between; margin-top:12px;">
+
+  <div>
+    <div style="font-size:12px; color:#777;">Machine</div>
+    <div style="font-weight:600;">${t.ticket_machine || "-"}</div>
+
+    <div style="margin-top:10px; font-size:12px; color:#777;">Created</div>
+    <div style="font-weight:600;">
+      ${new Date(t.ts).toLocaleString()}
+    </div>
+  </div>
+
+  <div>
+    <div style="font-size:12px; color:#777;">Customer</div>
+    <div style="font-weight:600;">${t.ticket_customer || "-"}</div>
+
+    <div style="margin-top:10px; font-size:12px; color:#777;">Assigned To</div>
+    <div style="font-weight:600;">
+      👤 ${t.ticket_assign_to || "Unassigned"}
+    </div>
+  </div>
+
 </div>
 
-<div>
-Customer<br><b>${t.ticket_customer || "-"}</b>
-</div>
+<!-- DESCRIPTION -->
+<div style="margin-top:15px;">
+  <div style="font-size:12px; color:#777;">Issue Description</div>
+  <div style="
+    background:#f1f5f9;
+    padding:10px;
+    border-radius:8px;
+    margin-top:4px;
+  ">
+    ${t.ticket_description || "No description"}
+  </div>
 </div>
 
-<div style="margin-top:10px;">
-Assigned To<br><b>${t.ticket_assign_to || "Unassigned"}</b>
-</div>
-
-<div style="margin-top:10px;">
-Created<br><b>${new Date(t.ts).toLocaleString()}</b>
-</div>
-
-<div style="margin-top:10px;">
-Description
-<div style="background:#f1f5f9; padding:8px; border-radius:6px;">
-${t.ticket_description || "No description"}
-</div>
 </div>
 `;
 
