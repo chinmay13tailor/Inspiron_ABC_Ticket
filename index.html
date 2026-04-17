@@ -276,7 +276,11 @@ const abcTickets = new Set();
 
 (data.ticket_customer || []).forEach(p => {
   if(p.value === "ABC"){
-    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
+
+    const match = (data.ticket_number || []).find(tn => 
+      Math.abs(tn.ts - p.ts) < 10000
+    );
+
     if(match){
       abcTickets.add(match.value);
     }
