@@ -264,7 +264,7 @@ loadTickets();
 async function loadTickets(){
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer,ticket_machine,ticket_assign_to,ticket_criticality&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
 {
 headers:{"X-Authorization":"Bearer "+JWT}
 });
@@ -320,11 +320,69 @@ return;
 }
 
 list.forEach(t=>{
+
+const priority = t.ticket_criticality || "LOW";
+const status = t.ticket_status || "OPEN";
+
+// 🎨 PRIORITY COLOR
+let priorityColor = "#3b82f6"; // LOW = blue
+if(priority==="HIGH") priorityColor="#ef4444";
+if(priority==="MEDIUM") priorityColor="#f59e0b";
+
+// 🎨 STATUS COLOR
+let statusColor = "#ef4444"; // OPEN
+if(status==="ASSIGNED") statusColor="#f59e0b";
+if(status==="IN_PROGRESS") statusColor="#3b82f6";
+if(status==="RESOLVED") statusColor="#22c55e";
+
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}')">
-<b>${t.ticket_number}</b><br>
-${t.ticket_subject || "-"}<br>
-${t.ticket_status || "-"}
+
+  <!-- TOP ROW -->
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    
+    <div style="font-weight:600;">
+      ${t.ticket_number}
+      <span style="
+        margin-left:8px;
+        font-size:12px;
+        padding:2px 6px;
+        border-radius:6px;
+        background:${priorityColor}20;
+        color:${priorityColor};
+      ">
+        ${priority}
+      </span>
+    </div>
+
+    <div style="
+      font-size:12px;
+      padding:2px 6px;
+      border-radius:6px;
+      background:${statusColor}20;
+      color:${statusColor};
+      font-weight:600;
+    ">
+      ${status}
+    </div>
+
+  </div>
+
+  <!-- SUBJECT -->
+  <div style="margin-top:6px; font-weight:500;">
+    ${t.ticket_subject || "-"}
+  </div>
+
+  <!-- MACHINE + CUSTOMER -->
+  <div style="font-size:12px; color:#666; margin-top:4px;">
+    ${t.ticket_machine || "-"} &nbsp;&nbsp;|&nbsp;&nbsp; ${t.ticket_customer || "-"}
+  </div>
+
+  <!-- ASSIGNED -->
+  <div style="font-size:12px; color:#2563eb; margin-top:4px;">
+    👤 ${t.ticket_assign_to || "Unassigned"}
+  </div>
+
 </div>
 `;
 });
