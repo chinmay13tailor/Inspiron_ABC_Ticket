@@ -34,6 +34,13 @@ grid-template-columns:35% 65%;
 gap:10px;
 height:85vh;
 }
+.ticketList::-webkit-scrollbar {
+width:6px;
+}
+.ticketList::-webkit-scrollbar-thumb {
+background:#cbd5f5;
+border-radius:10px;
+}
 
 /* LEFT PANEL */
 .left{
@@ -42,6 +49,8 @@ border-radius:12px;
 padding:10px;
 display:flex;
 flex-direction:column;
+height:100%;          
+overflow:hidden;    
 }
 
 .ticketHeader{
@@ -53,6 +62,7 @@ margin-bottom:10px;
 .ticketList{
 flex:1;
 overflow-y:auto;
+padding-right:3px;
 }
 
 .empty{
