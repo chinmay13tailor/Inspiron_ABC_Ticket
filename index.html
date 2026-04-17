@@ -264,14 +264,14 @@ loadTickets();
 async function loadTickets(){
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=ticket_number,ticket_subject,ticket_status,ticket_customer&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
 {
 headers:{"X-Authorization":"Bearer "+JWT}
 });
 
 const data = await res.json();
 
-// 🔥 STEP 1: UNIQUE TICKETS
+// 🔥 STEP 1: BUILD TICKET MAP
 const ticketMap = {};
 
 (data.ticket_number || []).forEach(p => {
@@ -288,8 +288,8 @@ const ticketMap = {};
 
 });
 
-// 🔥 STEP 2: ATTACH SUBJECT & STATUS
-["ticket_subject","ticket_status"].forEach(key=>{
+// 🔥 STEP 2: ATTACH ALL FIELDS
+["ticket_subject","ticket_status","ticket_customer"].forEach(key=>{
   (data[key] || []).forEach(p => {
 
     const match = (data.ticket_number || []).find(tn => 
@@ -305,7 +305,10 @@ const ticketMap = {};
 
 let list = Object.values(ticketMap);
 
-// 🔥 SORT LATEST FIRST
+// 🔥 STEP 3: FILTER ABC (FINAL LEVEL FILTER ✔)
+list = list.filter(t => t.ticket_customer === "ABC");
+
+// 🔥 STEP 4: SORT
 list.sort((a,b)=> b.ts - a.ts);
 
 // 🔥 RENDER
@@ -327,8 +330,7 @@ ${t.ticket_status || "-"}
 });
 
 updateKPI(list);
-
-  console.log("FULL API DATA:", data);
+    console.log("FULL API DATA:", data);
 console.log("ticket_number:", data.ticket_number);
   console.log("TOTAL ticket_number rows:", (data.ticket_number || []).length);
   const uniqueNums = [...new Set((data.ticket_number || []).map(x => x.value))];
@@ -338,9 +340,8 @@ console.log("UNIQUE ticket numbers:", uniqueNums);
 console.log("FINAL LIST:", list);
   list.forEach(t=>{
   console.log("RENDERING:", t.ticket_number);
-});
-
 }
+
 // KPI
 function updateKPI(list){
 
