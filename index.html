@@ -206,6 +206,19 @@ border-radius:6px;
 margin-top:8px;
 font-size:13px;
 }
+  .kpi div{
+  background:white;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.kpi div span{
+  font-size:12px;
+  color:#777;
+}
 </style>
 </head>
 
@@ -475,11 +488,33 @@ updateKPI(list);
 // ================= KPI =================
 function updateKPI(list){
 
-all.innerText=list.length;
-open.innerText=list.filter(t=>t.ticket_status==="OPEN").length;
-progress.innerText=list.filter(t=>t.ticket_status==="IN_PROGRESS").length;
-resolved.innerText=list.filter(t=>t.ticket_status==="RESOLVED").length;
-closed.innerText=list.filter(t=>t.ticket_status==="CLOSED").length;
+let total = list.length;
+
+let open = 0;
+let progress = 0;
+let resolved = 0;
+let closed = 0;
+
+list.forEach(t => {
+
+  let status = (t.ticket_status || "")
+                .toUpperCase()
+                .replace(" ", "_");
+
+  if(status === "OPEN") open++;
+  else if(status === "IN_PROGRESS") progress++;
+  else if(status === "RESOLVED") resolved++;
+  else if(status === "CLOSED") closed++;
+
+});
+
+// ✅ IMPORTANT: use innerHTML (not innerText)
+
+document.getElementById("all").innerHTML = total + "<br>All";
+document.getElementById("open").innerHTML = open + "<br>Open";
+document.getElementById("progress").innerHTML = progress + "<br>In Progress";
+document.getElementById("resolved").innerHTML = resolved + "<br>Resolved";
+document.getElementById("closed").innerHTML = closed + "<br>Closed";
 
 }
 
