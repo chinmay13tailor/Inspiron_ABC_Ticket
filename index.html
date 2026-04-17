@@ -76,6 +76,11 @@ background:#f1f5f9;
 border-left:4px solid #2563eb;
 background:#f8fafc;
 }
+.ticketHeader select{
+width:auto;
+padding:6px;
+font-size:12px;
+}
 
 /* RIGHT PANEL */
 .right{
@@ -170,8 +175,22 @@ width:300px;
 <div class="left">
 
 <div class="ticketHeader">
+
 <h3>Tickets</h3>
+
+<div style="display:flex; gap:8px; align-items:center;">
+
+<select id="priorityFilter" onchange="applyFilters()">
+<option value="ALL">All Priority</option>
+<option value="LOW">LOW</option>
+<option value="MEDIUM">MEDIUM</option>
+<option value="HIGH">HIGH</option>
+</select>
+
 <button onclick="openPopup()">+ Create</button>
+
+</div>
+
 </div>
 
 <div id="ticketList" class="ticketList"></div>
@@ -229,6 +248,7 @@ const DEVICE_ID="2b113dd0-2ce1-11f1-91db-cbfa9ac9843b";
 const JWT=new URLSearchParams(location.search).get("token")||"";
 
 let selectedTicket=null;
+let fullTicketList = []; // ✅ NEW
 
 // POPUP
 function openPopup(){popup.style.display="flex";}
@@ -238,7 +258,7 @@ function closePopup(){popup.style.display="none";}
 async function createTicket(){
 
 const num="ABC-"+Date.now();
-const ts = Date.now(); // ✅ SAME TS
+const ts = Date.now();
 
 await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
 method:"POST",
@@ -265,6 +285,7 @@ loadTickets();
 
 }
 
+// ================= LOAD TICKETS =================
 async function loadTickets(){
 
 const res = await fetch(
@@ -275,7 +296,7 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data = await res.json();
 
-// 🔥 STEP 1: BUILD TICKET MAP
+// STEP 1
 const ticketMap = {};
 
 (data.ticket_number || []).forEach(p => {
@@ -292,7 +313,7 @@ const ticketMap = {};
 
 });
 
-// 🔥 STEP 2: ATTACH ALL FIELDS
+// STEP 2
 ["ticket_subject","ticket_status","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality"].forEach(key=>{
   (data[key] || []).forEach(p => {
 
@@ -307,19 +328,37 @@ const ticketMap = {};
   });
 });
 
-let list = Object.values(ticketMap);
+// ✅ STORE GLOBAL LIST
+fullTicketList = Object.values(ticketMap);
 
-// 🔥 STEP 3: FILTER ABC (FINAL LEVEL FILTER ✔)
-list = list.filter(t => t.ticket_customer === "ABC");
+// ✅ OPTIONAL FILTER (ABC)
+fullTicketList = fullTicketList.filter(t => t.ticket_customer === "ABC");
 
-// 🔥 STEP 4: SORT
+// ✅ APPLY FILTER (IMPORTANT)
+applyFilters();
+}
+
+// ================= APPLY FILTER =================
+function applyFilters(){
+
+const priority = document.getElementById("priorityFilter")?.value || "ALL";
+
+let list = [...fullTicketList];
+
+// PRIORITY FILTER
+if(priority !== "ALL"){
+  list = list.filter(t => t.ticket_criticality === priority);
+}
+
+// SORT
 list.sort((a,b)=> b.ts - a.ts);
 
-// 🔥 RENDER
+// RENDER
 ticketList.innerHTML="";
 
 if(list.length===0){
 ticketList.innerHTML="<div class='empty'>No Tickets</div>";
+updateKPI(list);
 return;
 }
 
@@ -328,13 +367,12 @@ list.forEach(t=>{
 const priority = t.ticket_criticality || "LOW";
 const status = t.ticket_status || "OPEN";
 
-// 🎨 PRIORITY COLOR
-let priorityColor = "#3b82f6"; // LOW = blue
+// COLORS
+let priorityColor = "#3b82f6";
 if(priority==="HIGH") priorityColor="#ef4444";
 if(priority==="MEDIUM") priorityColor="#f59e0b";
 
-// 🎨 STATUS COLOR
-let statusColor = "#ef4444"; // OPEN
+let statusColor = "#ef4444";
 if(status==="ASSIGNED") statusColor="#f59e0b";
 if(status==="IN_PROGRESS") statusColor="#3b82f6";
 if(status==="RESOLVED") statusColor="#22c55e";
@@ -342,54 +380,35 @@ if(status==="RESOLVED") statusColor="#22c55e";
 ticketList.innerHTML+=`
 <div class="ticket" data-id="${t.ticket_number}" onclick="selectTicket('${t.ticket_number}', event)">
 
-  <!-- TOP ROW -->
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    
-    <div style="font-weight:600;">
-      ${t.ticket_number}
-      <span style="
-        margin-left:8px;
-        font-size:12px;
-        padding:2px 6px;
-        border-radius:6px;
-        background:${priorityColor}20;
-        color:${priorityColor};
-      ">
-        ${priority}
-      </span>
-    </div>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="font-weight:600;">
+${t.ticket_number}
+<span style="margin-left:8px;font-size:12px;padding:2px 6px;border-radius:6px;background:${priorityColor}20;color:${priorityColor};">
+${priority}
+</span>
+</div>
 
-    <div style="
-      font-size:12px;
-      padding:2px 6px;
-      border-radius:6px;
-      background:${statusColor}20;
-      color:${statusColor};
-      font-weight:600;
-    ">
-      ${status}
-    </div>
+<div style="font-size:12px;padding:2px 6px;border-radius:6px;background:${statusColor}20;color:${statusColor};font-weight:600;">
+${status}
+</div>
+</div>
 
-  </div>
+<div style="margin-top:6px;font-weight:500;">
+${t.ticket_subject || "-"}
+</div>
 
-  <!-- SUBJECT -->
-  <div style="margin-top:6px; font-weight:500;">
-    ${t.ticket_subject || "-"}
-  </div>
+<div style="font-size:12px;color:#666;margin-top:4px;">
+${t.ticket_machine || "-"} &nbsp;&nbsp;|&nbsp;&nbsp; ${t.ticket_customer || "-"}
+</div>
 
-  <!-- MACHINE + CUSTOMER -->
-  <div style="font-size:12px; color:#666; margin-top:4px;">
-    ${t.ticket_machine || "-"} &nbsp;&nbsp;|&nbsp;&nbsp; ${t.ticket_customer || "-"}
-  </div>
-
-  <!-- ASSIGNED -->
-  <div style="font-size:12px; color:#2563eb; margin-top:4px;">
-    👤 ${t.ticket_assign_to || "Unassigned"}
-  </div>
+<div style="font-size:12px;color:#2563eb;margin-top:4px;">
+👤 ${t.ticket_assign_to || "Unassigned"}
+</div>
 
 </div>
 `;
 });
+
 updateKPI(list);
 }
 
@@ -412,12 +431,10 @@ selectedTicket = num;
 details.innerText = num;
 loadChat(num);
 
-// 🔥 remove old active
 document.querySelectorAll('.ticket').forEach(el=>{
   el.classList.remove('active');
 });
 
-// 🔥 add active to clicked
 if(event && event.currentTarget){
   event.currentTarget.classList.add('active');
 }
@@ -448,7 +465,6 @@ const chats = Object.values(rows).filter(
   r => r.chat_number === num && r.chat_message
 );
 
-// ✅ FIX SORT
 chats.sort((a,b)=> (a.chat_time||0) - (b.chat_time||0));
 
 chat.innerHTML="";
@@ -480,7 +496,7 @@ chat_number:selectedTicket,
 chat_sender_type:"CUSTOMER",
 chat_sender_name:"ABC User",
 chat_message:chatInput.value,
-chat_time: Date.now() // ✅ IMPORTANT FIX
+chat_time: Date.now()
 }
 }])
 });
@@ -494,6 +510,5 @@ loadChat(selectedTicket);
 loadTickets();
 
 </script>
-
 </body>
 </html>
