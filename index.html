@@ -271,39 +271,55 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data = await res.json();
 
-// 🔥 STEP 1: BUILD ROWS
-const rows = {};
+// ✅ STEP 1: ABC tickets find karo
+const abcTickets = new Set();
 
-Object.entries(data).forEach(([key, arr])=>{
-  (arr || []).forEach(p=>{
-    rows[p.ts] = rows[p.ts] || { ts: p.ts };
-    rows[p.ts][key] = p.value;
-  });
-});
-
-let list = Object.values(rows);
-
-// 🔥 STEP 2: KEEP ONLY TICKET ROWS
-list = list.filter(r => r.ticket_number && r.ticket_subject);
-
-// 🔥 STEP 3: FILTER CUSTOMER (MOVE HERE ✅)
-list = list.filter(t => t.ticket_customer === "ABC");
-
-// 🔥 STEP 4: REMOVE DUPLICATES
-const uniqueMap = {};
-
-list.forEach(t=>{
-  if(!uniqueMap[t.ticket_number] || t.ts > uniqueMap[t.ticket_number].ts){
-    uniqueMap[t.ticket_number] = t;
+(data.ticket_customer || []).forEach(p => {
+  if(p.value === "ABC"){
+    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
+    if(match){
+      abcTickets.add(match.value);
+    }
   }
 });
 
-list = Object.values(uniqueMap);
+// ✅ STEP 2: ticket map banao
+const ticketMap = {};
 
-// 🔥 STEP 5: SORT
+(data.ticket_number || []).forEach(p => {
+  if(abcTickets.has(p.value)){
+
+    if(!ticketMap[p.value]){
+      ticketMap[p.value] = {
+        ticket_number: p.value,
+        ts: p.ts
+      };
+    } else if(p.ts > ticketMap[p.value].ts){
+      ticketMap[p.value].ts = p.ts;
+    }
+
+  }
+});
+
+// ✅ STEP 3: subject & status attach
+["ticket_subject","ticket_status"].forEach(key=>{
+  (data[key] || []).forEach(p => {
+
+    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
+
+    if(match && ticketMap[match.value]){
+      ticketMap[match.value][key] = p.value;
+    }
+
+  });
+});
+
+let list = Object.values(ticketMap);
+
+// ✅ sort
 list.sort((a,b)=> b.ts - a.ts);
 
-// 🔥 RENDER
+// ✅ render
 ticketList.innerHTML="";
 
 if(list.length===0){
