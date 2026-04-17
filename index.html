@@ -495,66 +495,72 @@ const t = fullTicketList.find(x => x.ticket_number === num);
 
 // 🔥 RENDER DETAILS
 details.innerHTML = `
-<div style="padding:10px;">
+<div style="padding:16px; max-width:800px;">
 
 <!-- HEADER -->
-<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="display:flex; align-items:center; gap:10px;">
 
   <div style="font-size:18px; font-weight:600;">
     ${t.ticket_number}
   </div>
 
-  <div style="display:flex; gap:6px;">
-  
-    <span style="
-      font-size:11px;
-      padding:3px 8px;
-      border-radius:999px;
-      background:${getPriorityColor(t.ticket_criticality)}20;
-      color:${getPriorityColor(t.ticket_criticality)};
-      font-weight:600;
-    ">
-      ${t.ticket_criticality || "LOW"}
-    </span>
+  <span style="
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    background:${getPriorityColor(t.ticket_criticality)}20;
+    color:${getPriorityColor(t.ticket_criticality)};
+    font-weight:600;
+  ">
+    ${t.ticket_criticality || "LOW"}
+  </span>
 
-    <span style="
-      font-size:11px;
-      padding:3px 8px;
-      border-radius:999px;
-      background:${getStatusColor(t.ticket_status)}20;
-      color:${getStatusColor(t.ticket_status)};
-      font-weight:600;
-    ">
-      ${(t.ticket_status || "OPEN").replace("_"," ")}
-    </span>
-
-  </div>
+  <span style="
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    background:${getStatusColor(t.ticket_status)}20;
+    color:${getStatusColor(t.ticket_status)};
+    font-weight:600;
+  ">
+    ${(t.ticket_status || "OPEN").replace("_"," ")}
+  </span>
 
 </div>
 
 <!-- SUBJECT -->
-<div style="margin-top:8px; font-weight:600; font-size:15px;">
+<div style="margin-top:8px; font-size:15px; font-weight:600;">
   ${t.ticket_subject || "-"}
 </div>
 
-<!-- INFO GRID -->
-<div style="display:flex; justify-content:space-between; margin-top:12px;">
+<!-- GRID INFO -->
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-top:15px;
+max-width:600px;
+">
 
   <div>
     <div style="font-size:12px; color:#777;">Machine</div>
     <div style="font-weight:600;">${t.ticket_machine || "-"}</div>
+  </div>
 
-    <div style="margin-top:10px; font-size:12px; color:#777;">Created</div>
+  <div>
+    <div style="font-size:12px; color:#777;">Customer</div>
+    <div style="font-weight:600;">${t.ticket_customer || "-"}</div>
+  </div>
+
+  <div>
+    <div style="font-size:12px; color:#777;">Created</div>
     <div style="font-weight:600;">
       ${new Date(t.ts).toLocaleString()}
     </div>
   </div>
 
   <div>
-    <div style="font-size:12px; color:#777;">Customer</div>
-    <div style="font-weight:600;">${t.ticket_customer || "-"}</div>
-
-    <div style="margin-top:10px; font-size:12px; color:#777;">Assigned To</div>
+    <div style="font-size:12px; color:#777;">Assigned To</div>
     <div style="font-weight:600;">
       👤 ${t.ticket_assign_to || "Unassigned"}
     </div>
@@ -563,13 +569,13 @@ details.innerHTML = `
 </div>
 
 <!-- DESCRIPTION -->
-<div style="margin-top:15px;">
+<div style="margin-top:15px; max-width:700px;">
   <div style="font-size:12px; color:#777;">Issue Description</div>
   <div style="
     background:#f1f5f9;
-    padding:10px;
+    padding:12px;
     border-radius:8px;
-    margin-top:4px;
+    margin-top:5px;
   ">
     ${t.ticket_description || "No description"}
   </div>
