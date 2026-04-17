@@ -271,7 +271,7 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data = await res.json();
 
-// 🔥 STEP 1: BUILD ROWS (TS BASED - CORRECT WAY)
+// 🔥 STEP 1: BUILD ROWS
 const rows = {};
 
 Object.entries(data).forEach(([key, arr])=>{
@@ -281,32 +281,26 @@ Object.entries(data).forEach(([key, arr])=>{
   });
 });
 
-// 🔥 STEP 2: CONVERT TO LIST
 let list = Object.values(rows);
 
-// 🔥 STEP 3: KEEP ONLY VALID TICKETS
+// 🔥 STEP 2: KEEP ONLY TICKET ROWS
 list = list.filter(r => r.ticket_number && r.ticket_subject);
 
-// 🔥 STEP 4: REMOVE DUPLICATES (IMPORTANT)
+// 🔥 STEP 3: FILTER CUSTOMER (MOVE HERE ✅)
+list = list.filter(t => t.ticket_customer === "ABC");
+
+// 🔥 STEP 4: REMOVE DUPLICATES
 const uniqueMap = {};
 
 list.forEach(t=>{
-  if(!uniqueMap[t.ticket_number]){
+  if(!uniqueMap[t.ticket_number] || t.ts > uniqueMap[t.ticket_number].ts){
     uniqueMap[t.ticket_number] = t;
-  } else {
-    // keep latest
-    if(t.ts > uniqueMap[t.ticket_number].ts){
-      uniqueMap[t.ticket_number] = t;
-    }
   }
 });
 
 list = Object.values(uniqueMap);
 
-// 🔥 STEP 5: FILTER CUSTOMER
-list = list.filter(t => t.ticket_customer === "ABC");
-
-// 🔥 STEP 6: SORT
+// 🔥 STEP 5: SORT
 list.sort((a,b)=> b.ts - a.ts);
 
 // 🔥 RENDER
