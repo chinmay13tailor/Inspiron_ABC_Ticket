@@ -271,52 +271,38 @@ headers:{"X-Authorization":"Bearer "+JWT}
 
 const data = await res.json();
 
-// 🔥 FINAL FIX: GROUP BY ticket_number ONLY
 const ticketMap = {};
 
-// STEP 1: create ticket base
+// ✅ STEP 1: create tickets
 (data.ticket_number || []).forEach(p => {
-
-  if(!ticketMap[p.value]){
-    ticketMap[p.value] = {
-      ticket_number: p.value,
-      ts: p.ts
-    };
-  } else {
-    // latest ts update
-    if(p.ts > ticketMap[p.value].ts){
-      ticketMap[p.value].ts = p.ts;
-    }
-  }
-
+  ticketMap[p.value] = {
+    ticket_number: p.value,
+    ts: p.ts
+  };
 });
 
-// STEP 2: attach fields
+// ✅ STEP 2: attach fields STRICTLY by order (NO TS MATCH)
 ["ticket_subject","ticket_status","ticket_customer"].forEach(key=>{
-  (data[key] || []).forEach(p => {
+  (data[key] || []).forEach((p, index) => {
 
-    // find matching ticket using SAME VALUE HISTORY
-    Object.values(ticketMap).forEach(t => {
+    const ticketNumbers = Object.keys(ticketMap);
 
-      // 🔥 IMPORTANT: match using closest ts per ticket
-      if(Math.abs(t.ts - p.ts) < 5000){
-        t[key] = p.value;
-      }
-
-    });
+    if(ticketNumbers[index]){
+      ticketMap[ticketNumbers[index]][key] = p.value;
+    }
 
   });
 });
 
 let list = Object.values(ticketMap);
 
-// ✅ filter customer
+// ✅ filter
 list = list.filter(t => t.ticket_customer === "ABC");
 
 // ✅ remove invalid
 list = list.filter(t => t.ticket_subject);
 
-// ✅ sort latest first
+// ✅ sort
 list.sort((a,b)=> b.ts - a.ts);
 
 ticketList.innerHTML="";
@@ -326,7 +312,6 @@ ticketList.innerHTML="<div class='empty'>No Tickets</div>";
 return;
 }
 
-// ✅ render
 list.forEach(t=>{
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}')">
