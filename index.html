@@ -289,7 +289,7 @@ const ticketMap = {};
 });
 
 // 🔥 STEP 2: ATTACH ALL FIELDS
-["ticket_subject","ticket_status","ticket_customer"].forEach(key=>{
+["ticket_subject","ticket_status","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality"].forEach(key=>{
   (data[key] || []).forEach(p => {
 
     const match = (data.ticket_number || []).find(tn => 
