@@ -376,8 +376,13 @@ font-size:13px;
 
 <!-- 🔷 INPUT -->
 <div class="inputBox">
+
+<button onclick="openImagePopup()" style="margin-right:5px;">➕</button>
+
 <input id="chatInput" placeholder="Add a comment...">
+
 <button onclick="sendChatUI()">Send</button>
+
 </div>
 
 </div>
@@ -410,7 +415,24 @@ font-size:13px;
 
 </div>
 </div>
+<!-- IMAGE POPUP -->
+<div class="popup" id="imagePopup">
+  <div class="popupContent" style="width:90%; max-width:800px; height:80%;">
 
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>Upload Image</h3>
+      <button onclick="closeImagePopup()">❌</button>
+    </div>
+
+    <!-- 🔥 iframe for image upload page -->
+    <iframe 
+      id="imageFrame"
+      src=""
+      style="width:100%; height:90%; border:none; border-radius:10px;">
+    </iframe>
+
+  </div>
+</div>
 <!-- ONLY SCRIPT PART UPDATED -->
 <script>
 
@@ -832,6 +854,21 @@ loadChat(selectedTicket);
 // INIT
 loadTickets();
 
+  function openImagePopup(){
+
+  const token = JWT;
+
+  // 🔥 GitHub hosted image page
+  const url = "https://chinmay13tailor.github.io/image.html?token=" + encodeURIComponent(token);
+
+  document.getElementById("imageFrame").src = url;
+
+  document.getElementById("imagePopup").style.display = "flex";
+}
+
+function closeImagePopup(){
+  document.getElementById("imagePopup").style.display = "none";
+}
 </script>
 </body>
 </html>
