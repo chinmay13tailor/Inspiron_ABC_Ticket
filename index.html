@@ -578,7 +578,45 @@ if(status==="RESOLVED") statusColor="#22c55e";
 
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}', event)">
-...
+
+<div style="display:flex; justify-content:space-between;">
+<div>
+<b>${t.ticket_number}</b>
+<span style="
+margin-left:8px;
+font-size:11px;
+padding:3px 8px;
+border-radius:999px;
+background:${priorityColor}20;
+color:${priorityColor};
+font-weight:600;
+">
+${priority}
+</span>
+</div>
+
+<div style="
+font-size:11px;
+padding:3px 8px;
+border-radius:999px;
+background:${statusColor}20;
+color:${statusColor};
+font-weight:600;
+">
+${status.replace("_"," ")}
+</div>
+</div>
+
+<div>${t.ticket_subject || "-"}</div>
+
+<div style="font-size:12px; color:#666;">
+${t.ticket_machine || "-"} | ${t.ticket_customer || "-"}
+</div>
+
+<div style="font-size:12px; color:#2563eb;">
+👤 ${t.ticket_assign_to || "Unassigned"}
+</div>
+
 </div>
 `;
 });
