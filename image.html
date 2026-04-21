@@ -80,9 +80,11 @@ const DEVICE_ID = "2b113dd0-2ce1-11f1-91db-cbfa9ac9843b";
 
 // ✅ JWT auto from URL (NO PROMPT)
 const JWT = new URLSearchParams(window.location.search).get("token");
-const ticketNumber = params.get("ticket");
 console.log("JWT AUTO:", JWT);
+const params = new URLSearchParams(window.location.search);
+const ticketNumber = params.get("ticket");
 
+console.log("TICKET:", ticketNumber);
 // ================= UPLOAD =================
 async function uploadImage(){
 
