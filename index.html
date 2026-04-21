@@ -416,6 +416,7 @@ font-size:13px;
 </div>
 </div>
 <!-- IMAGE POPUP -->
+<!-- IMAGE POPUP -->
 <div class="popup" id="imagePopup">
   <div class="popupContent" style="width:90%; max-width:800px; height:80%;">
 
@@ -424,7 +425,6 @@ font-size:13px;
       <button onclick="closeImagePopup()">❌</button>
     </div>
 
-    <!-- 🔥 iframe for image upload page -->
     <iframe 
       id="imageFrame"
       src=""
@@ -433,6 +433,27 @@ font-size:13px;
 
   </div>
 </div>
+
+<!-- 🔥 YAHAN PASTE KARNA HAI (image popup ke turant baad) -->
+
+<!-- GALLERY POPUP -->
+<div class="popup" id="galleryPopup">
+  <div class="popupContent" style="width:400px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>📸 Gallery</h3>
+      <button onclick="closeGallery()">❌</button>
+    </div>
+
+    <div style="margin-top:20px; text-align:center;">
+      Gallery content here...
+    </div>
+
+  </div>
+</div>
+
+<!-- SCRIPT START -->
+<script>
 <!-- ONLY SCRIPT PART UPDATED -->
 <script>
 
@@ -669,33 +690,40 @@ details.innerHTML = `
 <div style="padding:16px; max-width:100%;">
 
 <!-- HEADER -->
-<div style="display:flex; align-items:center; gap:10px;">
+<div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
 
-  <div style="font-size:18px; font-weight:600;">
-    ${t.ticket_number}
+  <div style="display:flex; align-items:center; gap:10px;">
+
+    <div style="font-size:18px; font-weight:600;">
+      ${t.ticket_number}
+    </div>
+
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getPriorityColor(t.ticket_criticality)}20;
+      color:${getPriorityColor(t.ticket_criticality)};
+      font-weight:600;
+    ">
+      ${t.ticket_criticality || "LOW"}
+    </span>
+
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getStatusColor(t.ticket_status)}20;
+      color:${getStatusColor(t.ticket_status)};
+      font-weight:600;
+    ">
+      ${(t.ticket_status || "OPEN").replace("_"," ")}
+    </span>
+
   </div>
 
-  <span style="
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:999px;
-    background:${getPriorityColor(t.ticket_criticality)}20;
-    color:${getPriorityColor(t.ticket_criticality)};
-    font-weight:600;
-  ">
-    ${t.ticket_criticality || "LOW"}
-  </span>
-
-  <span style="
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:999px;
-    background:${getStatusColor(t.ticket_status)}20;
-    color:${getStatusColor(t.ticket_status)};
-    font-weight:600;
-  ">
-    ${(t.ticket_status || "OPEN").replace("_"," ")}
-  </span>
+  <!-- 🔥 NEW BUTTON -->
+  <button onclick="openGallery()">📸 Gallery</button>
 
 </div>
 
@@ -869,6 +897,14 @@ loadTickets();
 function closeImagePopup(){
   document.getElementById("imagePopup").style.display = "none";
 }
+function openGallery(){
+  document.getElementById("galleryPopup").style.display = "flex";
+}
+
+function closeGallery(){
+  document.getElementById("galleryPopup").style.display = "none";
+}
+  
 </script>
 </body>
 </html>
