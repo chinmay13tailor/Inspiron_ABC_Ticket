@@ -416,6 +416,7 @@ font-size:13px;
 </div>
 </div>
 <!-- IMAGE POPUP -->
+<!-- IMAGE POPUP (UPLOAD) -->
 <div class="popup" id="imagePopup">
   <div class="popupContent" style="width:90%; max-width:800px; height:80%;">
 
@@ -424,7 +425,6 @@ font-size:13px;
       <button onclick="closeImagePopup()">❌</button>
     </div>
 
-    <!-- 🔥 iframe for image upload page -->
     <iframe 
       id="imageFrame"
       src=""
@@ -433,7 +433,20 @@ font-size:13px;
 
   </div>
 </div>
-<!-- ONLY SCRIPT PART UPDATED -->
+
+<!-- 🔥 YAHI ADD KARNA HAI (IMAGE GALLERY POPUP) -->
+<div class="popup" id="galleryPopup">
+  <div class="popupContent" style="width:90%; max-width:900px; height:80%;">
+
+    <div style="display:flex; justify-content:space-between;">
+      <h3>Images</h3>
+      <button onclick="closeGallery()">❌</button>
+    </div>
+
+    <div id="gallery" style="overflow:auto; height:90%;"></div>
+
+  </div>
+</div>
 <script>
 
 const API="https://plantwiz.pimateck.in/api";
@@ -565,6 +578,30 @@ if(status==="RESOLVED") statusColor="#22c55e";
 
 ticketList.innerHTML+=`
 <div class="ticket" onclick="selectTicket('${t.ticket_number}', event)">
+...
+</div>
+`;
+});
+
+updateKPI(list);
+}
+
+list.forEach(t=>{
+
+const priority = t.ticket_criticality || "LOW";
+const status = t.ticket_status || "OPEN";
+
+let priorityColor = "#3b82f6";
+if(priority==="HIGH") priorityColor="#ef4444";
+if(priority==="MEDIUM") priorityColor="#f59e0b";
+
+let statusColor = "#ef4444";
+if(status==="ASSIGNED") statusColor="#f59e0b";
+if(status==="IN_PROGRESS") statusColor="#3b82f6";
+if(status==="RESOLVED") statusColor="#22c55e";
+
+ticketList.innerHTML+=`
+<div class="ticket" onclick="selectTicket('${t.ticket_number}', event)">
 
 <div style="display:flex; justify-content:space-between;">
 <div>
@@ -669,33 +706,52 @@ details.innerHTML = `
 <div style="padding:16px; max-width:100%;">
 
 <!-- HEADER -->
-<div style="display:flex; align-items:center; gap:10px;">
+<div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
 
-  <div style="font-size:18px; font-weight:600;">
-    ${t.ticket_number}
+  <div style="display:flex; align-items:center; gap:10px;">
+
+    <div style="font-size:18px; font-weight:600;">
+      ${t.ticket_number}
+    </div>
+
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getPriorityColor(t.ticket_criticality)}20;
+      color:${getPriorityColor(t.ticket_criticality)};
+      font-weight:600;
+    ">
+      ${t.ticket_criticality || "LOW"}
+    </span>
+
+    <span style="
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:${getStatusColor(t.ticket_status)}20;
+      color:${getStatusColor(t.ticket_status)};
+      font-weight:600;
+    ">
+      ${(t.ticket_status || "OPEN").replace("_"," ")}
+    </span>
+
   </div>
 
-  <span style="
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:999px;
-    background:${getPriorityColor(t.ticket_criticality)}20;
-    color:${getPriorityColor(t.ticket_criticality)};
-    font-weight:600;
-  ">
-    ${t.ticket_criticality || "LOW"}
-  </span>
-
-  <span style="
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:999px;
-    background:${getStatusColor(t.ticket_status)}20;
-    color:${getStatusColor(t.ticket_status)};
-    font-weight:600;
-  ">
-    ${(t.ticket_status || "OPEN").replace("_"," ")}
-  </span>
+  <!-- 🔥 IMAGE TAB -->
+  <div 
+    onclick="openImageGallery('${t.ticket_number}')"
+    style="
+      cursor:pointer;
+      padding:6px 12px;
+      border-radius:8px;
+      background:#eef2ff;
+      font-size:13px;
+      font-weight:600;
+    "
+  >
+    🖼 Image (<span id="imgCount">0</span>)
+  </div>
 
 </div>
 
@@ -774,7 +830,15 @@ align-items:start;
 
 </div>
 `;
+
+// 🔥 LOAD CHAT
 loadChat(num);
+
+// 🔥 UPDATE IMAGE COUNT
+getImageCount(num).then(count=>{
+  const el = document.getElementById("imgCount");
+  if(el) el.innerText = count;
+});
 
 // ACTIVE UI
 document.querySelectorAll('.ticket').forEach(el=>{
@@ -852,23 +916,94 @@ loadChat(selectedTicket);
 }
 
 // INIT
-loadTickets();
-
-  function openImagePopup(){
-
-  const token = JWT;
-
-  // 🔥 GitHub hosted image page
- const url = "https://chinmay13tailor.github.io/Inspiron_ABC_Ticket/image.html?token=" + encodeURIComponent(token) + "&ticket=" + encodeURIComponent(selectedTicket);
-
-  document.getElementById("imageFrame").src = url;
-
-  document.getElementById("imagePopup").style.display = "flex";
+function openImagePopup(){
+const token = JWT;
+const url = "https://chinmay13tailor.github.io/Inspiron_ABC_Ticket/image.html?token=" + encodeURIComponent(token) + "&ticket=" + encodeURIComponent(selectedTicket);
+document.getElementById("imageFrame").src = url;
+document.getElementById("imagePopup").style.display = "flex";
 }
 
 function closeImagePopup(){
-  document.getElementById("imagePopup").style.display = "none";
+document.getElementById("imagePopup").style.display = "none";
 }
+
+// ================= IMAGE COUNT =================
+async function getImageCount(ticket){
+
+const res = await fetch(
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,image_number&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+{
+headers:{"X-Authorization":"Bearer "+JWT}
+});
+
+const data = await res.json();
+
+const rows = {};
+
+Object.entries(data).forEach(([k,arr])=>{
+(arr||[]).forEach(p=>{
+rows[p.ts]=rows[p.ts]||{};
+rows[p.ts][k]=p.value;
+});
+});
+
+const imgs = Object.values(rows).filter(
+r => r.image && r.image_number === ticket
+);
+
+return imgs.length;
+}
+
+// ================= 🔥 NEW: IMAGE GALLERY =================
+async function openImageGallery(ticket){
+
+document.getElementById("galleryPopup").style.display="flex";
+
+const res = await fetch(
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,image_number&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+{
+headers:{"X-Authorization":"Bearer "+JWT}
+});
+
+const data = await res.json();
+
+const rows = {};
+
+Object.entries(data).forEach(([k,arr])=>{
+(arr||[]).forEach(p=>{
+rows[p.ts]=rows[p.ts]||{};
+rows[p.ts][k]=p.value;
+});
+});
+
+const imgs = Object.values(rows)
+.filter(r => r.image && r.image_number === ticket)
+.sort((a,b)=> a.ts - b.ts);
+
+const gallery = document.getElementById("gallery");
+gallery.innerHTML="";
+
+if(imgs.length===0){
+gallery.innerHTML="<div>No images</div>";
+return;
+}
+
+imgs.forEach(i=>{
+gallery.innerHTML+=`
+<div style="margin-bottom:15px;">
+  <div style="font-size:12px;">
+    ${new Date(i.ts).toLocaleString()}
+  </div>
+  <img src="${i.image}" style="max-width:250px; border-radius:10px;">
+</div>
+`;
+});
+}
+
+function closeGallery(){
+document.getElementById("galleryPopup").style.display="none";
+}
+
 </script>
 </body>
 </html>
