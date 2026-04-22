@@ -959,7 +959,10 @@ chat.innerHTML+=`
     text-align:right;
     margin-top:5px;
   ">
-    ${new Date(c.chat_time || c.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+    const timeVal = Number(c.chat_time) || Number(c.ts);
+    const timeStr = isNaN(timeVal) 
+      ? "" 
+      : new Date(timeVal).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   </div>
 
 </div>
