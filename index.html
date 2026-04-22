@@ -418,7 +418,7 @@ font-size:13px;
 <!-- IMAGE POPUP -->
 <!-- IMAGE POPUP -->
 <div class="popup" id="imagePopup">
-  <div class="popupContent" style="width:90%; max-width:800px; height:80%;">
+  <div class="popupContent" style="width:80%; max-width:1000px; max-height:80vh; overflow-y:auto;">
 
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h3>Upload Image</h3>
@@ -918,7 +918,7 @@ function closeGallery(){
   async function loadGalleryImages(ticketNumber){
 
   const container = document.getElementById("galleryContent");
-  container.innerHTML = "Loading images...";
+  container.innerHTML = "";
 
   try{
 
