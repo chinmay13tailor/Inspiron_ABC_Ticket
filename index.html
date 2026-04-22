@@ -34,7 +34,7 @@ font-weight:600;
 display:grid;
 grid-template-columns:35% 65%;
 gap:10px;
-height:100%;
+height:calc(100vh - 110px); 
 }
 .ticketList::-webkit-scrollbar {
 width:6px;
@@ -65,7 +65,6 @@ margin-bottom:10px;
 flex:1;
 overflow-y:auto;
 padding-right:3px;
-max-height:65vh; 
 scrollbar-width:thin;
 }
 
@@ -119,6 +118,7 @@ padding:10px;
 display:flex;
 flex-direction:column;
 min-height:0;  
+scroll-behavior:smooth;  
 }
 
 .msg{
