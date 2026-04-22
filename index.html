@@ -522,6 +522,7 @@ const JWT=new URLSearchParams(location.search).get("token")||"";
 let selectedTicket=null;
 let fullTicketList = [];
 let chatInterval = null;
+let ticketInterval = null;
 
 // POPUP
 function openPopup(){popup.style.display="flex";}
@@ -554,7 +555,32 @@ ticket_criticality:priority.value
 });
 
 closePopup();
-loadTickets();
+// INIT
+init();
+
+async function init(){
+
+  await loadTickets();
+
+  // 🔥 AUTO REFRESH TICKETS
+  if(ticketInterval){
+    clearInterval(ticketInterval);
+  }
+
+  ticketInterval = setInterval(async ()=>{
+
+    await loadTickets();
+
+    // 🔥 same ticket open rakho
+    if(selectedTicket){
+      const t = fullTicketList.find(x => x.ticket_number === selectedTicket);
+      if(t){
+        selectTicket(selectedTicket);
+      }
+    }
+
+  }, 5000); // 5 sec
+}
 }
 
 // ================= LOAD TICKETS =================
