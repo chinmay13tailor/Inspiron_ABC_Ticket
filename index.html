@@ -947,26 +947,30 @@ chats.sort((a,b)=> (a.chat_time||0) - (b.chat_time||0));
 chat.innerHTML="";
 
 chats.forEach(c=>{
-chat.innerHTML+=`
-<div class="msg ${c.chat_sender_type==="OEM"?"oem":"customer"}" style="position:relative;">
 
-  <b>${c.chat_sender_name}</b><br>
-  ${c.chat_message}
+  // 🔥 TIME CALCULATION (OUTSIDE HTML)
+  const timeVal = Number(c.chat_time) || Number(c.ts);
+  const timeStr = isNaN(timeVal) 
+    ? "" 
+    : new Date(timeVal).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-  <div style="
-    font-size:10px;
-    color:#555;
-    text-align:right;
-    margin-top:5px;
-  ">
-    const timeVal = Number(c.chat_time) || Number(c.ts);
-    const timeStr = isNaN(timeVal) 
-      ? "" 
-      : new Date(timeVal).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  chat.innerHTML+=`
+  <div class="msg ${c.chat_sender_type==="OEM"?"oem":"customer"}" style="position:relative;">
+
+    <b>${c.chat_sender_name}</b><br>
+    ${c.chat_message}
+
+    <div style="
+      font-size:10px;
+      color:#555;
+      text-align:right;
+      margin-top:5px;
+    ">
+      ${timeStr}
+    </div>
+
   </div>
-
-</div>
-`;
+  `;
 });
 chat.scrollTop = chat.scrollHeight;
 }
