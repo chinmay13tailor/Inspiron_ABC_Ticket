@@ -555,32 +555,7 @@ ticket_criticality:priority.value
 });
 
 closePopup();
-// INIT
-init();
 
-async function init(){
-
-  await loadTickets();
-
-  // 🔥 AUTO REFRESH TICKETS
-  if(ticketInterval){
-    clearInterval(ticketInterval);
-  }
-
-  ticketInterval = setInterval(async ()=>{
-
-    await loadTickets();
-
-    // 🔥 same ticket open rakho
-    if(selectedTicket){
-      const t = fullTicketList.find(x => x.ticket_number === selectedTicket);
-      if(t){
-        selectTicket(selectedTicket);
-      }
-    }
-
-  }, 5000); // 5 sec
-}
 }
 
 // ================= LOAD TICKETS =================
@@ -1019,7 +994,33 @@ await loadChat(selectedTicket);
 }
 
 // INIT
-loadTickets();
+// INIT
+init();
+
+async function init(){
+
+  await loadTickets();
+
+  // 🔥 AUTO REFRESH TICKETS
+  if(ticketInterval){
+    clearInterval(ticketInterval);
+  }
+
+  ticketInterval = setInterval(async ()=>{
+
+    await loadTickets();
+
+    // 🔥 same ticket open rakho
+    if(selectedTicket){
+      const t = fullTicketList.find(x => x.ticket_number === selectedTicket);
+      if(t){
+        selectTicket(selectedTicket);
+      }
+    }
+
+  }, 5000); // 5 sec
+
+}
 
   function openImagePopup(){
 
