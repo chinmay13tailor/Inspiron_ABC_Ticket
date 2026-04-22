@@ -10,6 +10,8 @@ font-family:Segoe UI;
 background:#f1f5f9;
 margin:0;
 padding:10px;
+height:100vh;
+overflow:hidden;
 }
 
 /* KPI */
@@ -32,7 +34,7 @@ font-weight:600;
 display:grid;
 grid-template-columns:35% 65%;
 gap:10px;
-min-height:85vh;
+height:calc(100vh - 120px); 
 }
 .ticketList::-webkit-scrollbar {
 width:6px;
@@ -49,6 +51,8 @@ border-radius:10px;
   padding:10px;
   display:flex;
   flex-direction:column;
+  height:100%;
+  overflow:hidden;
 }
 
 .ticketHeader{
@@ -171,8 +175,9 @@ border-radius:12px;
 width:300px;
 }
   .details{
-padding:12px;
-border-bottom:1px solid #eee;
+  padding:12px;
+  border-bottom:1px solid #eee;
+  flex-shrink:0;
 }
 
 .ticketTitle{
