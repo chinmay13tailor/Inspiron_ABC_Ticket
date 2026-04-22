@@ -60,7 +60,7 @@ border-radius:10px;
 .ticketHeader{
 display:flex;
 justify-content:space-between;
-margin-bottom:10px;
+ align-items:center;
 }
 
 .ticketList{
@@ -101,7 +101,12 @@ background:#f8fafc;
 }
 
 .ticketHeader select{
+  height:36px;
   padding:0 10px;
+}
+  .ticketHeader select,
+.inputBox input{
+  margin-bottom:0;
 }
 
 .ticketHeader button{
@@ -174,7 +179,6 @@ max-width:70%;
 input,select,textarea{
 width:100%;
 padding:8px;
-margin-bottom:8px;
 border-radius:6px;
 border:1px solid #ccc;
 }
