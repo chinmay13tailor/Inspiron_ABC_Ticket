@@ -20,6 +20,7 @@ display:grid;
 grid-template-columns:repeat(5,1fr);
 gap:10px;
 margin-bottom:10px;
+flex-shrink:0;
 }
 .kpi div{
 background:white;
@@ -31,10 +32,11 @@ font-weight:600;
 
 /* LAYOUT */
 .container{
+flex:1;  
 display:grid;
 grid-template-columns:35% 65%;
 gap:10px;
-height:calc(100vh - 140px); 
+min-height:0;    
 }
 .ticketList::-webkit-scrollbar {
 width:6px;
@@ -296,6 +298,15 @@ font-size:13px;
   width:4px;
   border-radius:10px;
 }
+  .mainWrapper{
+  height:100%;
+  padding:10px;      
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
 
 /* COLORS */
 .kpiCard.total::before{background:#3b82f6;}
@@ -312,7 +323,7 @@ font-size:13px;
 </head>
 
 <body>
-
+<div class="mainWrapper">
 <!-- KPI -->
 <div class="kpi">
 
@@ -399,7 +410,7 @@ font-size:13px;
 </div>
 
 </div>
-
+</div>
 <!-- POPUP -->
 <div class="popup" id="popup">
 <div class="popupContent">
