@@ -445,9 +445,9 @@ font-size:13px;
       <button onclick="closeGallery()">❌</button>
     </div>
 
-    <div style="margin-top:20px; text-align:center;">
-      Gallery content here...
-    </div>
+<div id="galleryContent" style="margin-top:20px; text-align:center;">
+  Loading...
+</div>
 
   </div>
 </div>
@@ -894,11 +894,67 @@ function closeImagePopup(){
   document.getElementById("imagePopup").style.display = "none";
 }
 function openGallery(){
+
   document.getElementById("galleryPopup").style.display = "flex";
+
+  if(!selectedTicket){
+    document.getElementById("galleryContent").innerHTML = "No ticket selected";
+    return;
+  }
+
+  loadGalleryImages(selectedTicket);
 }
 
 function closeGallery(){
   document.getElementById("galleryPopup").style.display = "none";
+}
+  async function loadGalleryImages(ticketNumber){
+
+  const container = document.getElementById("galleryContent");
+  container.innerHTML = "Loading images...";
+
+  try{
+
+    const res = await fetch(
+      `${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,image_number&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+      {
+        headers: { "X-Authorization": "Bearer " + JWT }
+      }
+    );
+
+    const data = await res.json();
+
+    if(!data.image || !data.image_number){
+      container.innerHTML = "No images found";
+      return;
+    }
+
+    let html = "";
+
+    data.image.forEach(img => {
+
+      const match = (data.image_number || []).find(n => n.ts === img.ts);
+
+      if(match && match.value === ticketNumber){
+
+        html += `
+          <div style="margin-bottom:10px;">
+            <img src="${img.value}" style="width:100%; border-radius:8px;">
+            <div style="font-size:11px; color:#555;">
+              ${new Date(img.ts).toLocaleString()}
+            </div>
+          </div>
+        `;
+      }
+
+    });
+
+    container.innerHTML = html || "No images for this ticket";
+
+  }catch(err){
+    console.error(err);
+    container.innerHTML = "Error loading images";
+  }
 }
   
 </script>
