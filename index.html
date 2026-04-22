@@ -92,10 +92,20 @@ background:#f1f5f9;
 border-left:4px solid #2563eb;
 background:#f8fafc;
 }
+.ticketHeader select,
+.ticketHeader button{
+  height:36px;
+  margin-bottom:0;
+  display:flex;
+  align-items:center;
+}
+
 .ticketHeader select{
-width:auto;
-padding:6px;
-font-size:12px;
+  padding:0 10px;
+}
+
+.ticketHeader button{
+  padding:0 14px;
 }
 
 /* RIGHT PANEL */
@@ -136,11 +146,29 @@ max-width:70%;
 .oem{background:#dcfce7;align-self:flex-end;}
 
 .inputBox{
-display:flex;
-padding:10px;
-border-top:1px solid #eee;
-flex-shrink:0;
-background:white;  
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px;
+  border-top:1px solid #eee;
+  background:white;
+}
+  .inputBox button{
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+  .inputBox button:first-child{
+  width:36px;
+  padding:0;
+  font-size:16px;
+}
+
+.inputBox input{
+  height:36px;
+  margin-bottom:0;
+  flex:1;
 }
 
 input,select,textarea{
