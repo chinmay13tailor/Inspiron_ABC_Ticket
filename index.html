@@ -32,7 +32,7 @@ font-weight:600;
 display:grid;
 grid-template-columns:35% 65%;
 gap:10px;
-height:85vh;
+min-height:85vh;
 }
 .ticketList::-webkit-scrollbar {
 width:6px;
@@ -44,13 +44,11 @@ border-radius:10px;
 
 /* LEFT PANEL */
 .left{
-background:white;
-border-radius:12px;
-padding:10px;
-display:flex;
-flex-direction:column;
-height:100%;          
-overflow:hidden;    
+  background:white;
+  border-radius:12px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
 }
 
 .ticketHeader{
@@ -63,6 +61,8 @@ margin-bottom:10px;
 flex:1;
 overflow-y:auto;
 padding-right:3px;
+max-height:65vh; 
+scrollbar-width:thin;
 }
 
 .empty{
