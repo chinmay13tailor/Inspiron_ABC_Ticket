@@ -521,6 +521,7 @@ const JWT=new URLSearchParams(location.search).get("token")||"";
 
 let selectedTicket=null;
 let fullTicketList = [];
+let chatInterval = null;
 
 // POPUP
 function openPopup(){popup.style.display="flex";}
@@ -585,23 +586,52 @@ const ticketMap = {};
 });
 
 // STEP 2
-["ticket_subject","ticket_status","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality","ticket_description"].forEach(key=>{
+// 🔥 HANDLE ALL FIELDS WITH LATEST LOGIC
+
+["ticket_subject","ticket_customer","ticket_machine","ticket_assign_to","ticket_criticality","ticket_description"].forEach(key=>{
+
   (data[key] || []).forEach(p => {
 
-    const match = (data.ticket_number || []).find(tn => 
-      Math.abs(tn.ts - p.ts) < 10000
-    );
+    const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
 
-    if(match && ticketMap[match.value]){
-      ticketMap[match.value][key] = p.value;
+    if(match){
+
+      const ticket = ticketMap[match.value];
+
+      // ✅ only latest value store
+      if(!ticket[key + "_ts"] || p.ts > ticket[key + "_ts"]){
+        ticket[key] = p.value;
+        ticket[key + "_ts"] = p.ts;
+      }
+
     }
 
   });
+
 });
 
+// 🔥 STATUS (LATEST ONLY)
+(data.ticket_status || []).forEach(p => {
+
+  const match = (data.ticket_number || []).find(tn => tn.ts === p.ts);
+
+  if(match){
+
+    const ticket = ticketMap[match.value];
+
+    if(!ticket.ticket_status_ts || p.ts > ticket.ticket_status_ts){
+      ticket.ticket_status = p.value;
+      ticket.ticket_status_ts = p.ts;
+    }
+
+  }
+
+});
 // STORE
 fullTicketList = Object.values(ticketMap);
-fullTicketList = fullTicketList.filter(t => t.ticket_customer === "ABC");
+fullTicketList = fullTicketList.filter(t => 
+  (t.ticket_customer || "").trim().toUpperCase() === "ABC"
+);
 
 // APPLY FILTER
 applyFilters();
@@ -865,6 +895,17 @@ margin-top:5px;
 `;
 loadChat(num);
 
+// 🔥 AUTO REFRESH START
+if(chatInterval){
+  clearInterval(chatInterval);
+}
+
+chatInterval = setInterval(()=>{
+  if(selectedTicket){
+    loadChat(selectedTicket);
+  }
+}, 3000);
+
 // ACTIVE UI
 document.querySelectorAll('.ticket').forEach(el=>{
   el.classList.remove('active');
@@ -906,13 +947,24 @@ chat.innerHTML="";
 
 chats.forEach(c=>{
 chat.innerHTML+=`
-<div class="msg ${c.chat_sender_type==="OEM"?"oem":"customer"}">
-<b>${c.chat_sender_name}</b><br>
-${c.chat_message}
+<div class="msg ${c.chat_sender_type==="OEM"?"oem":"customer"}" style="position:relative;">
+
+  <b>${c.chat_sender_name}</b><br>
+  ${c.chat_message}
+
+  <div style="
+    font-size:10px;
+    color:#555;
+    text-align:right;
+    margin-top:5px;
+  ">
+    ${new Date(c.chat_time || c.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+  </div>
+
 </div>
 `;
 });
-
+chat.scrollTop = chat.scrollHeight;
 }
 
 // ================= SEND =================
@@ -937,7 +989,7 @@ chat_time: Date.now()
 });
 
 chatInput.value="";
-loadChat(selectedTicket);
+await loadChat(selectedTicket);
 }
 
 // INIT
