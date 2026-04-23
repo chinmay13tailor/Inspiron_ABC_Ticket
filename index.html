@@ -487,7 +487,29 @@ font-size:13px;
 </div>
 
 <!-- 🔥 YAHAN PASTE KARNA HAI (image popup ke turant baad) -->
+<!-- IMAGE POPUP -->
+<div class="popup" id="imagePopup">
+  <div class="popupContent" style="
+    width:90%;
+    max-width:1100px;
+    height:80vh;
+    display:flex;
+    flex-direction:column;
+    border-radius:14px;
+  ">
 
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>Upload File</h3>
+      <button onclick="closeImagePopup()">❌</button>
+    </div>
+
+    <iframe 
+      id="imageFrame"
+      style="width:100%; flex:1; border:none; border-radius:10px;">
+    </iframe>
+
+  </div>
+</div>
 <!-- GALLERY POPUP -->
 <div class="popup" id="galleryPopup">
  <div class="popupContent" style="
@@ -1193,17 +1215,20 @@ function switchTab(tab){
 
   currentTab = tab;
 
-  // 🔥 ACTIVE UI
-document.getElementById("imgTab").classList.remove("active");
-document.getElementById("pdfTab").classList.remove("active");
+  // ACTIVE UI
+  document.getElementById("imgTab").classList.remove("active");
+  document.getElementById("pdfTab").classList.remove("active");
 
-if(tab === "image"){
-  document.getElementById("imgTab").classList.add("active");
-}else{
-  document.getElementById("pdfTab").classList.add("active");
-}
+  if(tab === "image"){
+    document.getElementById("imgTab").classList.add("active");
+  }else{
+    document.getElementById("pdfTab").classList.add("active");
+  }
 
-
+  // 🔥 THIS WAS MISSING
+  if(selectedTicket){
+    loadGalleryImages(selectedTicket);
+  }
 }
 </script>
 </body>
