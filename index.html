@@ -1067,7 +1067,7 @@ function closeGallery(){
   try{
 
     const res = await fetch(
-      `${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,image_number&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
+      `${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,image_number,pdf,pdf_number&startTs=0&endTs=${Date.now()}&limit=10000&agg=NONE`,
       {
         headers: { "X-Authorization": "Bearer " + JWT }
       }
@@ -1075,8 +1075,11 @@ function closeGallery(){
 
     const data = await res.json();
 
-    if(!data.image || !data.image_number){
-      container.innerHTML = "No images found";
+    if(
+      (!data.image || data.image.length === 0) &&
+      (!data.pdf || data.pdf.length === 0)
+    ){
+      container.innerHTML = "No files found";
       return;
     }
 
@@ -1117,8 +1120,46 @@ html += `
       }
 
     });
+    (data.pdf || []).forEach(file => {
 
-    container.innerHTML = html || "No images for this ticket";
+  const match = (data.pdf_number || []).find(n => n.ts === file.ts);
+
+  if(match && match.value === ticketNumber){
+
+    html += `
+      <div style="
+        background:#fff;
+        border-radius:8px;
+        padding:10px;
+        text-align:center;
+        box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      ">
+
+        <div style="font-size:30px;">📄</div>
+
+        <div style="font-size:12px; margin-top:5px;">
+          PDF File
+        </div>
+
+        <div style="margin-top:6px;">
+          <a href="${file.value}" target="_blank">Open</a>
+        </div>
+
+        <div style="
+          font-size:10px;
+          margin-top:6px;
+          color:#555;
+        ">
+          ${new Date(file.ts).toLocaleString()}
+        </div>
+
+      </div>
+    `;
+  }
+
+});
+
+    container.innerHTML = html || "No files for this ticket";
 
   }catch(err){
     console.error(err);
