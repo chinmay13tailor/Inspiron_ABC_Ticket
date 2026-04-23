@@ -183,7 +183,6 @@ headers:{
 
 console.log("LOAD STATUS:", res.status);
 
-// ❌ safe parse
 const text = await res.text();
 console.log("LOAD RAW:", text);
 
@@ -194,7 +193,14 @@ try{
   console.warn("Not JSON response");
 }
 
-output.innerHTML = "";
+// ✅ RESET + GRID START
+output.innerHTML = `
+<div style="
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap:12px;
+">
+`;
 
 // 🔹 IMAGE TAB
 if(currentTab === "image"){
@@ -202,11 +208,23 @@ if(currentTab === "image"){
   (data.image || []).forEach(p => {
 
     output.innerHTML += `
-      <div>
-        <img src="${p.value}">
-        <div style="font-size:10px;">${new Date(p.ts).toLocaleString()}</div>
-        <hr>
+    <div style="
+      background:#fff;
+      border-radius:10px;
+      padding:6px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      text-align:center;
+    ">
+      <img src="${p.value}" style="
+        width:100%;
+        height:100px;
+        object-fit:cover;
+        border-radius:6px;
+      ">
+      <div style="font-size:10px; margin-top:5px;">
+        ${new Date(p.ts).toLocaleString()}
       </div>
+    </div>
     `;
 
   });
@@ -219,23 +237,51 @@ if(currentTab === "pdf"){
   (data.pdf || []).forEach(p => {
 
     output.innerHTML += `
-      <div style="
-        background:#f1f5f9;
-        padding:10px;
-        border-radius:8px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-      ">
-        📄 PDF File
-        <a href="${p.value}" target="_blank">Open</a>
+    <div style="
+      background:#fff;
+      border-radius:10px;
+      padding:10px;
+      text-align:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    ">
+      <div style="font-size:30px;">📄</div>
+
+      <div style="font-size:12px; margin-top:5px;">
+        PDF File
       </div>
-      <hr>
+
+      <a href="${p.value}" target="_blank" style="
+        display:inline-block;
+        margin-top:6px;
+        color:#2563eb;
+        font-size:12px;
+      ">
+        Open
+      </a>
+
+      <div style="font-size:10px; margin-top:6px;">
+        ${new Date(p.ts).toLocaleString()}
+      </div>
+    </div>
     `;
 
   });
 
 }
+
+// ✅ EMPTY STATE (optional but good)
+if(output.innerHTML.trim() === `
+<div style="
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap:12px;
+">
+`){
+  output.innerHTML += "No files found";
+}
+
+// ✅ GRID CLOSE
+output.innerHTML += `</div>`;
 
 } catch(err){
 console.error("❌ LOAD ERROR:", err);
