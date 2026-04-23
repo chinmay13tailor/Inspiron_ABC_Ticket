@@ -547,12 +547,13 @@ font-size:13px;
 <div id="galleryContent" style="
   margin-top:15px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(180px,200px));
   gap:16px;
   overflow-y:auto;
   flex:1;
   padding:20px;
-  justify-items:center;
+  justify-content:flex-start;
+  align-items:start;
 ">
 </div>
 </div>
@@ -1153,6 +1154,7 @@ if(currentTab === "image"){
   overflow:hidden;
   box-shadow:0 6px 16px rgba(0,0,0,0.08);
   transition:0.2s;
+  height:auto;
 ">
 
   <img src="${img.value}" style="
