@@ -44,7 +44,7 @@ margin-right:5px;
 
 <h3>📸 Firebase Image Upload Test</h3>
 
-<input type="file" id="fileInput" accept="image/*"><br><br>
+<input type="file" id="fileInput" accept="image/*,.pdf"><br><br>
 
 <button onclick="uploadImage()">Upload</button>
 <button onclick="loadImages()">Load Images</button>
@@ -91,10 +91,11 @@ async function uploadImage(){
 const file = document.getElementById("fileInput").files[0];
 
 if(!file){
-alert("Select file first");
-return;
+  alert("Select file first");
+  return;
 }
 
+const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 const fileName = Date.now() + "_" + file.name;
 const storageRef = storage.ref("tickets/" + fileName);
 
@@ -110,20 +111,30 @@ const ts = Date.now();
 console.log("IMAGE URL:", url);
 
 // send to TB
-const res = await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
-method:"POST",
-headers:{
-"X-Authorization":"Bearer " + JWT,
-"Content-Type":"application/json"
-},
-body: JSON.stringify([{
+  // ===== CREATE PAYLOAD =====
+const payload = {
   ts: ts,
-  values:{
-    image: url,
-    image_number: ticketNumber
-  }
-}])
+  values: {}
+};
+
+if(isPDF){
+  payload.values["pdf"] = url;
+  payload.values["pdf_number"] = ticketNumber;
+}else{
+  payload.values["image"] = url;
+  payload.values["image_number"] = ticketNumber;
+}
+
+// ===== SEND TO THINGSBOARD =====
+const res = await fetch(`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/timeseries/ANY`,{
+  method:"POST",
+  headers:{
+    "X-Authorization":"Bearer " + JWT,
+    "Content-Type":"application/json"
+  },
+  body: JSON.stringify([payload])
 });
+
 
 // status check
 console.log("STATUS:", res.status);
@@ -155,7 +166,7 @@ async function loadImages(){
 try {
 
 const res = await fetch(
-`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image&limit=20&agg=NONE`,
+`${API}/plugins/telemetry/DEVICE/${DEVICE_ID}/values/timeseries?keys=image,pdf&limit=20&agg=NONE`,
 {
 headers:{
 "X-Authorization":"Bearer " + JWT
@@ -177,14 +188,34 @@ try{
 
 output.innerHTML = "";
 
+// 🔹 IMAGE
 (data.image || []).forEach(p => {
 
-output.innerHTML += `
-<div>
-<img src="${p.value}">
-<hr>
+  output.innerHTML += `
+  <div>
+    <img src="${p.value}">
+    <hr>
+  </div>
+  `;
+
+});
+
+// 🔹 PDF
+(data.pdf || []).forEach(p => {
+
+  output.innerHTML += `
+<div style="
+  background:#f1f5f9;
+  padding:10px;
+  border-radius:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+">
+  📄 PDF File
+  <a href="${p.value}" target="_blank">Open</a>
 </div>
-`;
+  `;
 
 });
 
