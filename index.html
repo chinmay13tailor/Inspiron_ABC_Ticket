@@ -342,7 +342,7 @@ font-size:13px;
 }
 .tabBtn{
   padding:6px 14px;
-  border-radius:6px;
+  border-radius:20px;
   border:none;
   cursor:pointer;
   background:#e5e7eb;
@@ -350,6 +350,7 @@ font-size:13px;
   font-size:12px;
   transition:0.2s;
 }
+
 
 .tabBtn.active{
   background:#2563eb;
@@ -546,12 +547,12 @@ font-size:13px;
 <div id="galleryContent" style="
   margin-top:15px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:16px;
   overflow-y:auto;
   flex:1;
-  padding-right:5px;
-  padding:10px;
+  padding:20px;
+  justify-items:center;
 ">
 </div>
 </div>
@@ -1091,18 +1092,18 @@ function closeImagePopup(){
 }
 function openGallery(){
 
-  currentTab = "image";
-
-  document.getElementById("galleryPopup").style.display = "flex";
-
-  // 🔥 ADD THIS LINE (IMPORTANT)
-  switchTab("image");
-
   if(!selectedTicket){
     document.getElementById("galleryContent").innerHTML = "No ticket selected";
+    document.getElementById("galleryPopup").style.display = "flex";
     return;
   }
 
+  document.getElementById("galleryPopup").style.display = "flex";
+
+  currentTab = "image";
+
+  // 🔥 THIS MUST BE LAST
+  switchTab("image");
 }
 
 function closeGallery(){
@@ -1111,7 +1112,7 @@ function closeGallery(){
   async function loadGalleryImages(ticketNumber){
 
   const container = document.getElementById("galleryContent");
-  container.innerHTML = "";
+  container.innerHTML = "Loading...";
 
   try{
 
@@ -1139,23 +1140,38 @@ if(currentTab === "image"){
 
 (data.image || []).forEach(img => {
 
-  const match = (data.image_number || []).find(n => n.ts === img.ts);
+  const match = (data.image_number || []).find(n => Math.abs(n.ts - img.ts) < 5);
 
   if(match && match.value === ticketNumber){
 
-    html += `
-    <div style="
-      background:#fff;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    ">
-      <img src="${img.value}" style="width:100%; height:140px; object-fit:cover;">
-      <div style="font-size:11px; padding:6px; text-align:center;">
-        ${new Date(img.ts).toLocaleString()}
-      </div>
-    </div>
-    `;
+   html += `
+<div style="
+  width:100%;
+  max-width:200px;
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 6px 16px rgba(0,0,0,0.08);
+  transition:0.2s;
+">
+
+  <img src="${img.value}" style="
+    width:100%;
+    height:140px;
+    object-fit:cover;
+  ">
+
+  <div style="
+    font-size:11px;
+    padding:8px;
+    text-align:center;
+    color:#555;
+  ">
+    ${new Date(img.ts).toLocaleString()}
+  </div>
+
+</div>
+`;
   }
 
 });
@@ -1171,34 +1187,53 @@ if(currentTab === "pdf"){
   if(match && match.value === ticketNumber){
 
     html += `
-    <div style="
-      background:#fff;
-      border-radius:12px;
-      padding:12px;
-      text-align:center;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    ">
-      <div style="font-size:32px;">📄</div>
-      <div style="font-size:13px; margin-top:6px;">PDF File</div>
+<div style="
+  width:100%;
+  max-width:200px;
+  background:#fff;
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+  box-shadow:0 6px 16px rgba(0,0,0,0.08);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+">
 
-      <a href="${file.value}" target="_blank" style="
-        display:inline-block;
-        margin-top:8px;
-        padding:4px 10px;
-        background:#2563eb;
-        color:white;
-        border-radius:6px;
-        font-size:11px;
-        text-decoration:none;
-      ">
-        Open
-      </a>
+  <div style="
+    font-size:40px;
+  ">📄</div>
 
-      <div style="font-size:10px; margin-top:6px;">
-        ${new Date(file.ts).toLocaleString()}
-      </div>
-    </div>
-    `;
+  <div style="
+    font-size:13px;
+    font-weight:600;
+    color:#333;
+  ">
+    PDF File
+  </div>
+
+  <a href="${file.value}" target="_blank" style="
+    padding:6px 14px;
+    background:#2563eb;
+    color:#fff;
+    border-radius:6px;
+    font-size:12px;
+    text-decoration:none;
+  ">
+    Open
+  </a>
+
+  <div style="
+    font-size:10px;
+    color:#666;
+  ">
+    ${new Date(file.ts).toLocaleString()}
+  </div>
+
+</div>
+`;
   }
 
 });
