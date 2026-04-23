@@ -6,41 +6,42 @@
 
 <style>
 body{
-font-family:Segoe UI;
-background:#f1f5f9;
-padding:20px;
+  font-family:Segoe UI;
+  background:#f1f5f9;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;   /* 👈 full center */
+  margin:0;
 }
 
 .container{
-background:white;
-padding:20px;
-border-radius:12px;
-max-width:600px;
-margin:auto;
-}
-
-img{
-max-width:200px;
-border-radius:8px;
-margin-top:10px;
-display:block;
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  width:100%;
+  max-width:420px;   /* 👈 compact */
+  margin:auto;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
 button{
-padding:8px 12px;
-background:#2563eb;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-margin-right:5px;
+  padding:10px;
+  width:100%;          /* 👈 full width */
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  margin-top:10px;
 }
-  select, input{
+select, input{
   width:100%;
-  padding:8px;
+  padding:10px;
   border-radius:6px;
   border:1px solid #ccc;
-  margin-top:5px;
+  margin-top:6px;
 }
 </style>
 </head>
@@ -52,7 +53,7 @@ margin-right:5px;
 <h3 style="margin-bottom:15px;">📁 Upload Attachment</h3>
   <!-- TYPE SELECT -->
 <div style="margin-bottom:10px;">
-  <label style="font-size:13px; color:#555;">Select Type</label><br>
+  <label style="font-size:13px; color:#555; font-weight:500;">Select Type</label><br>
   <select id="fileType">
     <option value="image">Image</option>
     <option value="pdf">PDF</option>
@@ -61,7 +62,7 @@ margin-right:5px;
 
 <!-- FILE INPUT -->
 <div style="margin-bottom:10px;">
-  <label style="font-size:13px; color:#555;">Choose File</label><br>
+  <label style="font-size:13px; color:#555; font-weight:500;">Choose File</label><br>
   <input type="file" id="fileInput">
 </div>
 
