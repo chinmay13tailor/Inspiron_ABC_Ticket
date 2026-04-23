@@ -43,6 +43,13 @@ margin-right:5px;
 <div class="container">
 
 <h3>📸 Firebase Image Upload Test</h3>
+  <div style="display:flex; gap:10px; margin-bottom:15px;">
+  
+  <button id="imgTab" onclick="showGalleryTab('image')" style="background:#2563eb;">Images</button>
+  
+  <button id="pdfTab" onclick="showGalleryTab('pdf')" style="background:#e5e7eb; color:black;">Files</button>
+
+</div>
 
 <input type="file" id="fileInput" accept="image/*,.pdf"><br><br>
 
@@ -85,6 +92,7 @@ const params = new URLSearchParams(window.location.search);
 const ticketNumber = params.get("ticket");
 
 console.log("TICKET:", ticketNumber);
+let currentTab = "image";
 // ================= UPLOAD =================
 async function uploadImage(){
 
@@ -188,43 +196,65 @@ try{
 
 output.innerHTML = "";
 
-// 🔹 IMAGE
-(data.image || []).forEach(p => {
+// 🔹 IMAGE TAB
+if(currentTab === "image"){
 
-  output.innerHTML += `
-  <div>
-    <img src="${p.value}">
-    <hr>
-  </div>
-  `;
+  (data.image || []).forEach(p => {
 
-});
+    output.innerHTML += `
+      <div>
+        <img src="${p.value}">
+        <div style="font-size:10px;">${new Date(p.ts).toLocaleString()}</div>
+        <hr>
+      </div>
+    `;
 
-// 🔹 PDF
-(data.pdf || []).forEach(p => {
+  });
 
-  output.innerHTML += `
-<div style="
-  background:#f1f5f9;
-  padding:10px;
-  border-radius:8px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-">
-  📄 PDF File
-  <a href="${p.value}" target="_blank">Open</a>
-</div>
-  `;
+}
 
-});
+// 🔹 PDF TAB
+if(currentTab === "pdf"){
+
+  (data.pdf || []).forEach(p => {
+
+    output.innerHTML += `
+      <div style="
+        background:#f1f5f9;
+        padding:10px;
+        border-radius:8px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+        📄 PDF File
+        <a href="${p.value}" target="_blank">Open</a>
+      </div>
+      <hr>
+    `;
+
+  });
+
+}
 
 } catch(err){
 console.error("❌ LOAD ERROR:", err);
 }
 
 }
+function showGalleryTab(type){
 
+  currentTab = type;
+
+  // button UI
+  document.getElementById("imgTab").style.background = type === "image" ? "#2563eb" : "#e5e7eb";
+  document.getElementById("pdfTab").style.background = type === "pdf" ? "#2563eb" : "#e5e7eb";
+
+  document.getElementById("imgTab").style.color = type === "image" ? "white" : "black";
+  document.getElementById("pdfTab").style.color = type === "pdf" ? "white" : "black";
+
+  loadImages(); // reload gallery
+}
 </script>
 
 </body>
