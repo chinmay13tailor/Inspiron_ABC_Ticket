@@ -35,6 +35,13 @@ border-radius:6px;
 cursor:pointer;
 margin-right:5px;
 }
+  select, input{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  margin-top:5px;
+}
 </style>
 </head>
 
@@ -42,19 +49,29 @@ margin-right:5px;
 
 <div class="container">
 
-<h3>📸 Firebase Image Upload Test</h3>
-  <div style="display:flex; gap:10px; margin-bottom:15px;">
-  
-  <button id="imgTab" onclick="showGalleryTab('image')" style="background:#2563eb;">Images</button>
-  
-  <button id="pdfTab" onclick="showGalleryTab('pdf')" style="background:#e5e7eb; color:black;">Files</button>
-
+<h3 style="margin-bottom:15px;">📁 Upload Attachment</h3>
+  <!-- TYPE SELECT -->
+<div style="margin-bottom:10px;">
+  <label style="font-size:13px; color:#555;">Select Type</label><br>
+  <select id="fileType">
+    <option value="image">Image</option>
+    <option value="pdf">PDF</option>
+  </select>
 </div>
 
-<input type="file" id="fileInput" accept="image/*,.pdf"><br><br>
+<!-- FILE INPUT -->
+<div style="margin-bottom:10px;">
+  <label style="font-size:13px; color:#555;">Choose File</label><br>
+  <input type="file" id="fileInput">
+</div>
 
+<!-- STATUS -->
+<div id="statusText" style="
+  font-size:12px;
+  color:#666;
+  margin-bottom:10px;
+"></div>
 <button onclick="uploadImage()">Upload</button>
-<button onclick="loadImages()">Load Images</button>
 
 <hr>
 
@@ -103,7 +120,12 @@ if(!file){
   return;
 }
 
-const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+// ✅ 👉 YAHI ADD KARNA HAI
+document.getElementById("statusText").innerText = "Uploading...";
+
+const selectedType = document.getElementById("fileType").value;
+const isPDF = selectedType === "pdf";
+
 const fileName = Date.now() + "_" + file.name;
 const storageRef = storage.ref("tickets/" + fileName);
 
@@ -157,13 +179,13 @@ if(!res.ok){
 }
 
 console.log("✅ Image Saved");
-alert("✅ Uploaded + Saved");
+document.getElementById("statusText").innerText = "✅ Upload Successful";
 
 loadImages();
 
 } catch(err){
 console.error("❌ ERROR:", err);
-alert("Upload failed");
+document.getElementById("statusText").innerText = "❌ Upload Failed";
 }
 
 }
